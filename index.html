@@ -2,32 +2,71 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Расписание</title>
+<title>Gesher Calendar</title>
 
 <style>
-html, body {
-  margin: 0;
-  padding: 0;
-  background: black;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
+body{
+    background: #050505;
+    color: white;
+    font-family: Arial;
+    margin: 0;
+    padding: 40px;
 }
 
-iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
+h1{
+    text-align: center;
+    font-size: 60px;
+    margin-bottom: 40px;
 }
+
+table{
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 36px;
+}
+
+td, th{
+    padding: 20px;
+    border-bottom: 1px solid #333;
+}
+
+.time{width: 20%;}
+.event{width: 50%;}
+.room{width: 30%;}
 </style>
 </head>
 
 <body>
 
-<iframe
-  src="https://gesher1-my.sharepoint.com/:x:/r/personal/sorokin_gesher-t_co_il/_layouts/15/Doc.aspx?sourcedoc=%7B68aaadff-99f0-41a3-ad71-4e562b8ac889%7D&action=embedview&wdAllowInteractivity=False&ActiveCell=%27Sheet1%27!A1&wdHideGridlines=True&wdHideHeaders=True&wdDownloadButton=True&wdInConfigurator=True%22%3E%3C%2Fiframe%3E"
-  allowfullscreen>
-</iframe>
+<h1>GESHER CALENDAR</h1>
+
+<table id="schedule"></table>
+
+<script>
+const url = "Вhttps://gesher1-my.sharepoint.com/personal/sorokin_gesher-t_co_il/_layouts/15/Doc.aspx?sourcedoc={68aaadff-99f0-41a3-ad71-4e562b8ac889}&action=embedview&wdAllowInteractivity=False&ActiveCell='Sheet1'!A1&Item='Sheet1'!A1%3AT66&wdHideGridlines=True&wdDownloadButton=True&wdInConfigurator=True&wdInConfigurator=True"></iframe>";
+
+async function loadSheet() {
+    const response = await fetch(url);
+    const text = await response.text();
+
+    const rows = text.split("\n").map(r => r.split(","));
+
+    let html = "<tr><th>Время</th><th>Событие</th><th>Комната</th></tr>";
+
+    for(let i=1; i<rows.length; i++){
+        html += "<tr>";
+        rows[i].forEach(cell=>{
+           html += `<td>${cell}</td>`;
+        });
+        html += "</tr>";
+    }
+
+    document.getElementById("schedule").innerHTML = html;
+}
+
+loadSheet();
+setInterval(loadSheet, 30000); // обновление каждые 30 сек
+</script>
 
 </body>
 </html>
