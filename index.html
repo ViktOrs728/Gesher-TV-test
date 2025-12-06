@@ -2,70 +2,38 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Gesher Calendar</title>
+<title>Gesher</title>
 
 <style>
-body{
-    background: #050505;
-    color: white;
-    font-family: Arial;
+html, body {
     margin: 0;
-    padding: 40px;
-}
-
-h1{
-    text-align: center;
-    font-size: 60px;
-    margin-bottom: 40px;
-}
-
-table{
+    padding: 0;
+    background: black;
     width: 100%;
-    border-collapse: collapse;
-    font-size: 36px;
+    height: 100%;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
 }
 
-td, th{
-    padding: 20px;
-    border-bottom: 1px solid #333;
+iframe {
+    width: 100vw;
+    height: 100vh;
+    border: none;
 }
-
-.time{width: 20%;}
-.event{width: 50%;}
-.room{width: 30%;}
 </style>
 </head>
 
 <body>
 
-<h1>GESHER CALENDAR</h1>
+<iframe 
+  src="https://gesher1-my.sharepoint.com/personal/sorokin_gesher-t_co_il/_layouts/15/Doc.aspx?sourcedoc={3d6cc510-8ba7-4dfb-a53c-0ac0465a4712}&action=embedview&wdAllowInteractivity=False&ActiveCell='Sheet1'!A1&wdHideGridlines=True&wdHideHeaders=True">
+</iframe>
 
-<table id="schedule"></table>
-
+<!-- Автообновление каждые 60 секунд -->
 <script>
-const url = "https://gesher1-my.sharepoint.com/personal/sorokin_gesher-t_co_il/_layouts/15/Doc.aspx?sourcedoc={68aaadff-99f0-41a3-ad71-4e562b8ac889}&action=embedview&wdAllowInteractivity=False&ActiveCell='Sheet1'!A1&Item='Sheet1'!A1%3AT66&wdHideGridlines=True&wdDownloadButton=True&wdInConfigurator=True&wdInConfigurator=True"></iframe>";
-
-async function loadSheet() {
-    const response = await fetch(url);
-    const text = await response.text();
-
-    const rows = text.split("\n").map(r => r.split(","));
-
-    let html = "<tr><th>Время</th><th>Событие</th><th>Комната</th></tr>";
-
-    for(let i=1; i<rows.length; i++){
-        html += "<tr>";
-        rows[i].forEach(cell=>{
-           html += `<td>${cell}</td>`;
-        });
-        html += "</tr>";
-    }
-
-    document.getElementById("schedule").innerHTML = html;
-}
-
-loadSheet();
-setInterval(loadSheet, 30000); // обновление каждые 30 сек
+setTimeout(function(){
+    location.reload();
+}, 60000);
 </script>
 
 </body>
