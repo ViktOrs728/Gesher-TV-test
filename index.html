@@ -13,44 +13,22 @@ body{
     padding: 30px;
 }
 
-.header-bar{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
 h1{
+    text-align: center;
     font-size: 60px;
-    margin: 0;
-}
-
-#clock {
-    font-size: 34px;
-    background:#111;
-    padding: 12px 25px;
-    border-radius: 10px;
-}
-
-.table-wrapper{
-    max-height: 75vh;
-    overflow-y: auto;
-    border: 2px solid #222;
+    margin-bottom: 30px;
 }
 
 table{
     width: 100%;
     border-collapse: collapse;
-    font-size: 30px;
-    text-align: center;
+    font-size: 32px;
 }
 
-thead th{
-    position: sticky;
-    top: 0;
+th{
     background:#111;
     padding: 20px;
-    border-bottom: 2px solid #777;
+    border-bottom: 2px solid #555;
 }
 
 td{
@@ -62,24 +40,39 @@ tr:nth-child(even){
     background:#0c0c0c;
 }
 
-.date{ width: 15%; }
 .time{ width: 15%; }
-.title{ width: 30%; }
+.title{ width: 35%; }
 .place{ width: 25%; }
-.note{ width: 15%; }
+.note{ width: 25%; }
 </style>
 </head>
 
 <body>
 
-<div class="header-bar">
-    <h1>לוח הצגות</h1>
-    <div id="clock">--:--</div>
-</div>
+<h1>לוח הצגות</h1>
 
-<div class="table-wrapper">
-    <table id="schedule">
-        <thead>
+<table id="schedule">
+<tr>
+    <th>תאריך</th>
+    <th>שעה</th>
+    <th>שם ההצגה</th>
+    <th>מקום</th>
+    <th>הערות</th>
+</tr>
+</table>
+
+<script>
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8VHJ7usLuV213YvhCULcjqMrH6M22QQ_cLDtP8f6u0cb7XXKbeBVzEoKRGmigGFm_EQvtN17sQGi2/pub?gid=0&single=true&output=csv"
+
+async function loadSchedule() {
+    const response = await fetch(CSV_URL);
+    const data = await response.text();
+
+    const rows = data.split("\n").map(r => r.split(","));
+    const table = document.getElementById("schedule");
+
+    // Очищаем всё кроме заголовков
+    table.innerHTML = `
         <tr>
             <th>תאריך</th>
             <th>שעה</th>
@@ -87,119 +80,26 @@ tr:nth-child(even){
             <th>מקום</th>
             <th>הערות</th>
         </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-</div>
-
-<script>
-const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8VHJ7usLuV213YvhCULcjqMrH6M22QQ_cLDtP8f6u0cb7XXKbeBVzEoKRGmigGFm_EQvtN17sQGi2/pub?gid=1245589780&single=true&output=csv"
-
-function getTelAvivTime(){
-    const now = new Date();
-    const options = {
-        timeZone: "Asia/Jerusalem",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit"
-    }
-    return new Intl.DateTimeFormat("he-IL", options).format(now);
-}
-
-function updateClock(){
-    document.getElementById("clock").textContent = getTelAvivTime();
-}
-
-setInterval(updateClock, 1000);
-updateClock();
-
-function parseCSV(text) {
-    const rows = [];
-    let current = '';
-    let row = [];
-    let insideQuotes = false;
-
-    for (let i = 0; i < text.length; i++) {
-        const char = text[i];
-
-        if (char === '"' && text[i + 1] === '"') {
-            current += '"';
-            i++;
-        } else if (char === '"') {
-            insideQuotes = !insideQuotes;
-        } else if (char === ',' && !insideQuotes) {
-            row.push(current);
-            current = '';
-        } else if (char === '\n' && !insideQuotes) {
-            row.push(current);
-            rows.push(row);
-            row = [];
-            current = '';
-        } else {
-            current += char;
-        }
-    }
-
-    if (current.length > 0) {
-        row.push(current);
-        rows.push(row);
-    }
-
-    return rows;
-}
-
-function isTodayOrFuture(dateStr){
-    // ожидается формат: DD.MM.YYYY
-    const parts = dateStr.split(".");
-    if(parts.length < 3) return false;
-
-    const day = parseInt(parts[0]);
-    const month = parseInt(parts[1]) - 1;
-    const year = parseInt(parts[2]);
-
-    const showDate = new Date(year, month, day);
-
-    const now = new Date();
-    const telAvivNow = new Date(
-        now.toLocaleString("en-US", { timeZone: "Asia/Jerusalem" })
-    );
-
-    telAvivNow.setHours(0,0,0,0);
-    showDate.setHours(0,0,0,0);
-
-    return showDate >= telAvivNow;
-}
-
-async function loadSchedule() {
-    const response = await fetch(CSV_URL);
-    const data = await response.text();
-
-    const rows = parseCSV(data);
-    const body = document.querySelector("#schedule tbody");
-
-    body.innerHTML = "";
-
-    const classes = ["date","time","title","place","note"];
+    `;
 
     for(let i = 1; i < rows.length; i++){
-        const rowData = rows[i];
-
-        if(rowData.length < 5) continue;
-
-        if(!isTodayOrFuture(rowData[0])) continue;
+        if(rows[i].length < 4) continue;
 
         const row = document.createElement("tr");
 
-        rowData.forEach((cell, index) => {
+        rows[i].forEach(cell => {
             const td = document.createElement("td");
-            td.className = classes[index] || "";
             td.textContent = cell.replace(/"/g, "");
             row.appendChild(td);
         });
 
-        body.appendChild(row);
+        table.appendChild(row);
     }
 }
 
 loadSchedule();
-setInterval(loadSchedule
+setInterval(loadSchedule, 30000); // автообновление каждые 30 секунд
+</script>
+
+</body>
+</html>
