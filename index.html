@@ -1,297 +1,105 @@
 <!DOCTYPE html>
-<html lang="en">
+<html dir="rtl">
 <head>
-<meta charset="UTF-8" />
-<title>Theatre GESHER </title>
+<meta charset="UTF-8">
+<title>לוח הצגות - GESHER</title>
 
 <style>
-body {
-  font-family: system-ui, Arial, sans-serif;
-  margin: 0;
-  padding: 20px;
-  background: #034920;
-  color: #f5f5f5;
+body{
+    background: rgb(1, 67, 43);
+    color: white;
+    font-family: Arial;
+    margin: 0;
+    padding: 30px;
 }
 
-h1 {
-  margin-bottom: 10px;
-  font-size: 42px;
+h1{
+    text-align: center;
+    font-size: 60px;
+    margin-bottom: 30px;
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
+table{
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 32px;
 }
 
-.clock {
-  font-size: 22px;
+th{
+    background:#111;
+    padding: 20px;
+    border-bottom: 2px solid #555;
 }
 
-.day-block {
-  background: #111;
-  padding: 12px;
-  margin-bottom: 15px;
-  border: 1px solid #333;
-  border-radius: 10px;
+td{
+    padding: 18px;
+    border-bottom: 1px solid #333;
 }
 
-.day-header {
-  font-size: 22px;
-  margin-bottom: 10px;
-  display: flex;
-  justify-content: space-between;
-  color: #ffd166;
+tr:nth-child(even){
+    background:#0c0c0c;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 8px;
-  font-size: 20px;
-}
-
-th, td {
-  border-bottom: 1px solid #333;
-  padding: 8px 6px;
-}
-
-th {
-  background: #1f1f1f;
-}
-
-.tag {
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-size: 14px;
-  display: inline-block;
-}
-
-.house { background: #2d6a4f; }
-.tour { background: #6a2d3c; }
-.rental { background: #6a5acd; }
-
-.no-events {
-  opacity: .5;
-  padding: 10px 0;
-}
+.time{ width: 15%; }
+.title{ width: 35%; }
+.place{ width: 25%; }
+.note{ width: 25%; }
 </style>
 </head>
 
 <body>
 
-<h1>🎭 Theatre GESHER</h1>
-<h2> Schedule</h2>
+<h1>לוח הצגות</h1>
 
-<div class="header">
-  <div>Live from Google Sheets</div>
-  <div class="clock" id="clockTA">Tel Aviv time: --:--:--</div>
-</div>
-
-<div id="week">Loading...</div>
+<table id="schedule">
+<tr>
+    <th>תאריך</th>
+    <th>שעה</th>
+    <th>שם ההצגה</th>
+    <th>מקום</th>
+    <th>הערות</th>
+</tr>
+</table>
 
 <script>
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8VHJ7usLuV213YvhCULcjqMrH6M22QQ_cLDtP8f6u0cb7XXKbeBVzEoKRGmigGFm_EQvtN17sQGi2/pub?gid=1245589780&single=true&output=csv"
 
-const CSV_URL =
- "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8VHJ7usLuV213YvhCULcjqMrH6M22QQ_cLDtP8f6u0cb7XXKbeBVzEoKRGmigGFm_EQvtN17sQGi2/pub?gid=0&single=true&output=csv";
+async function loadSchedule() {
+    const response = await fetch(CSV_URL);
+    const data = await response.text();
 
-// Названия колонок
-const COLUMN_MAP = {
-  date: ["date", "תאריך"],
-  time: ["time", "שעה"],
-  title: ["title", "שם", "הצגה"],
-  area: ["area", "type", "סוג"],
-  hall: ["hall", "city", "אולם", "עיר"],
-  note: ["note", "הערה"]
-};
+    const rows = data.split("\n").map(r => r.split(","));
+    const table = document.getElementById("schedule");
 
-// CSV parser
-function parseCSV(text) {
-  const rows = [];
-  let row = [], value = "", inside = false;
-
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i], next = text[i+1];
-
-    if (c === '"' && inside && next === '"') {
-      value += '"'; i++;
-      continue;
-    }
-
-    if (c === '"') {
-      inside = !inside;
-      continue;
-    }
-
-    if (c === ',' && !inside) {
-      row.push(value);
-      value = "";
-      continue;
-    }
-
-    if ((c === '\n' || c === '\r') && !inside) {
-      if (value || row.length) {
-        row.push(value);
-        rows.push(row);
-        row = [];
-        value = "";
-      }
-      continue;
-    }
-
-    value += c;
-  }
-
-  if (value || row.length) {
-    row.push(value);
-    rows.push(row);
-  }
-
-  return rows;
-}
-
-// Распознавание колонок по названию
-function detectColumns(header) {
-  const map = {};
-  for (const key in COLUMN_MAP) {
-    const names = COLUMN_MAP[key];
-    const idx = header.findIndex(h =>
-      names.includes(h.trim().toLowerCase())
-    );
-    map[key] = idx;
-  }
-  return map;
-}
-
-// Время Тель-Авива
-function updateClock() {
-  const el = document.getElementById("clockTA");
-  const now = new Date();
-  const ta = new Date(now.toLocaleString("en-US",{ timeZone:"Asia/Jerusalem" }));
-
-  el.textContent =
-    "Tel Aviv time: " +
-    ta.getHours().toString().padStart(2,"0") + ":" +
-    ta.getMinutes().toString().padStart(2,"0") + ":" +
-    ta.getSeconds().toString().padStart(2,"0");
-}
-
-// Отрисовка недели
-function renderWeek(events) {
-  const container = document.getElementById("week");
-  container.innerHTML = "";
-
-  const now = new Date();
-  const ta = new Date(now.toLocaleString("en-US",{ timeZone:"Asia/Jerusalem" }));
-
-  const day = ta.getDay();
-  const start = new Date(ta);
-  start.setDate(ta.getDate() - day);
-
-  const days = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(start);
-    d.setDate(start.getDate() + i);
-    days.push(d);
-  }
-
-  const weekdays = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-
-  for (const d of days) {
-    const iso = d.toISOString().split("T")[0];
-
-    const block = document.createElement("div");
-    block.className = "day-block";
-
-    const header = document.createElement("div");
-    header.className = "day-header";
-    header.textContent = `${weekdays[d.getDay()]} — ${iso}`;
-
-    block.appendChild(header);
-
-    const dayEvents = events
-      .filter(e => e.date === iso)
-      .sort((a,b)=>(a.time || "").localeCompare(b.time||""));
-
-    if (!dayEvents.length) {
-      const empty = document.createElement("div");
-      empty.className = "no-events";
-      empty.textContent = "No events";
-      block.appendChild(empty);
-      container.appendChild(block);
-      continue;
-    }
-
-    const table = document.createElement("table");
+    // Очищаем всё кроме заголовков
     table.innerHTML = `
-      <tr>
-        <th>Time</th>
-        <th>Title</th>
-        <th>Hall / City</th>
-        <th>Type</th>
-        <th>Note</th>
-      </tr>
+        <tr>
+            <th>תאריך</th>
+            <th>שעה</th>
+            <th>שם ההצגה</th>
+            <th>מקום</th>
+            <th>הערות</th>
+        </tr>
     `;
 
-    for (const ev of dayEvents) {
-      const tr = document.createElement("tr");
+    for(let i = 1; i < rows.length; i++){
+        if(rows[i].length < 4) continue;
 
-      tr.innerHTML = `
-        <td>${ev.time || ""}</td>
-        <td>${ev.title || ""}</td>
-        <td>${ev.hall || ""}</td>
-        <td>
-          <span class="tag ${
-            ["בית","house"].includes((ev.area||"").toLowerCase()) ? "house" :
-            ["חוץ","tour"].includes((ev.area||"").toLowerCase()) ? "tour" :
-            ["השכרה","rental"].includes((ev.area||"").toLowerCase()) ? "rental" : ""
-          }">${ev.area || ""}</span>
-        </td>
-        <td>${ev.note || ""}</td>
-      `;
+        const row = document.createElement("tr");
 
-      table.appendChild(tr);
+        rows[i].forEach(cell => {
+            const td = document.createElement("td");
+            td.textContent = cell.replace(/"/g, "");
+            row.appendChild(td);
+        });
+
+        table.appendChild(row);
     }
-
-    block.appendChild(table);
-    container.appendChild(block);
-  }
 }
 
-// Загрузка данных
-async function loadData() {
-  try {
-    const resp = await fetch(CSV_URL);
-    const text = await resp.text();
-
-    const rows = parseCSV(text);
-    const header = rows[0].map(h => h.trim().toLowerCase());
-    const cols = detectColumns(header);
-
-    const events = rows.slice(1).map(r => ({
-      date: r[cols.date],
-      time: r[cols.time],
-      title: r[cols.title],
-      area: r[cols.area],
-      hall: r[cols.hall],
-      note: r[cols.note]
-    })).filter(e => e.date && e.title);
-
-    renderWeek(events);
-
-  } catch (err) {
-    document.getElementById("week").innerHTML =
-      "<div style='color:red;font-size:22px;'>ERROR LOADING DATA:<br>" + err + "</div>";
-  }
-}
-
-// INIT
-updateClock();
-setInterval(updateClock, 1000);
-loadData();
-setInterval(loadData, 30000); // обновление данных каждые 30 сек
-
+loadSchedule();
+setInterval(loadSchedule, 30000); // автообновление каждые 30 секунд
 </script>
+
 </body>
 </html>
