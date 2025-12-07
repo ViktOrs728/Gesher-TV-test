@@ -1,45 +1,547 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Gesher</title>
-
-
-
-
-
-<style>
-/* Стили для отображения на весь экран, без полей и прокрутки */
-html, body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    background: rgb(6, 43, 20);
-    overflow: hidden;
-}
-
-iframe {
-    width: 100vw; /* Ширина 100% от ширины экрана */
-    height: 100vh; /* Высота 100% от высоты экрана */
-    border: 0;
-}
-</style>
+  <meta charset="UTF-8">
+  <title>Theatre GESHER</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 20px;
+      direction: ltr;
+      background: #096f07;
+      color: #f5f5f5;
+    }
+    h1 {
+      margin: 0 0 6px 0;
+      font-size: 40px;
+    }
+    .sub-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    .clock {
+      font-size: 16px;
+    }
+    .date-picker {
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+    }
+    .date-picker label {
+      min-width: 90px;
+    }
+    input[type="date"] {
+      font-size: 15px;
+      padding: 4px 8px;
+      background: #222;
+      border: 1px solid #444;
+      border-radius: 4px;
+      color: #f5f5f5;
+    }
+    .week-range {
+      font-size: 14px;
+      opacity: 0.9;
+      margin-bottom: 8px;
+    }
+    .status-line {
+      font-size: 14px;
+      margin-bottom: 10px;
+      opacity: 0.9;
+    }
+    .status-line.error {
+      color: #ffb3b3;
+    }
+    .day-block {
+      margin-bottom: 18px;
+      padding: 10px;
+      border-radius: 8px;
+      background: #171717;
+      border: 1px solid #262626;
+    }
+    .day-header {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .day-header span.date {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 6px 8px;
+      border-bottom: 1px solid #333;
+      text-align: left;
+    }
+    th {
+      background: #222;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    tr:nth-child(even) {
+      background: #181818;
+    }
+    .tag {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      background: #444;
+      margin-right: 4px;
+      white-space: nowrap;
+    }
+    .tag-house {
+      background: #2d6a4f;
+    }
+    .tag-tour {
+      background: #6a2d3c;
+    }
+    .tag-rental {
+      background: #6a5acd;
+    }
+    .empty-day {
+      font-size: 13px;
+      opacity: 0.7;
+      padding: 4px 2px;
+    }
+    .load-box {
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px dashed #333;
+      font-size: 12px;
+      opacity: 0.9;
+    }
+    .load-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 2px 0;
+    }
+    .badge {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 999px;
+      font-size: 11px;
+    }
+    .badge-low {
+      background: #295270;
+      color: #dce9f5;
+    }
+    .badge-medium {
+      background: #5a3c0d;
+      color: #ffe1b3;
+    }
+    .badge-high {
+      background: #703030;
+      color: #f5dada;
+    }
+    .badge-very-high {
+      background: #8b0000;
+      color: #ffeaea;
+    }
+  </style>
 </head>
-
 <body>
 
-<iframe 
-  src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8VHJ7usLuV213YvhCULcjqMrH6M22QQ_cLDtP8f6u0cb7XXKbeBVzEoKRGmigGFm_EQvtN17sQGi2/pubhtml?widget=true&amp;headers=false"
-  allowfullscreen>
-</iframe>
+  <h1>GESHER TEATRE</h1>
+  <div class="sub-header">
+    <div class="clock" id="taClock">Tel Aviv time: --:--:--</div>
+  </div>
 
-<script>
-  // Автообновление раз в 1 минуту (60000 миллисекунд)
-  setTimeout(function(){
-    location.reload();
-  }, 60000);
-</script>
+  <div class="date-picker">
+    <label for="anchorDate">Anchor date:</label>
+    <input type="date" id="anchorDate">
+  </div>
+  <div class="week-range" id="weekRange"></div>
+  <div class="status-line" id="statusLine">Loading data from Google Sheets…</div>
 
+  <div id="weekContainer"></div>
+
+  <script>
+    // >>> REPLACE THIS WITH YOUR PUBLISHED CSV URL <<<
+    // It must point to a sheet with columns:
+    // date, area, title, time, hall_or_city, note
+    const CSV_URL =
+      "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8VHJ7usLuV213YvhCULcjqMrH6M22QQ_cLDtP8f6u0cb7XXKbeBVzEoKRGmigGFm_EQvtN17sQGi2/pubhtml"
+
+    const anchorInput   = document.getElementById("anchorDate");
+    const weekContainer = document.getElementById("weekContainer");
+    const weekRangeEl   = document.getElementById("weekRange");
+    const statusLine    = document.getElementById("statusLine");
+
+    // Basic CSV parser with quotes support
+    function parseCSV(text) {
+      const rows = [];
+      let current = [];
+      let value = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        const next = text[i + 1];
+
+        if (c === '"' && inQuotes && next === '"') {
+          value += '"';
+          i++;
+        } else if (c === '"') {
+          inQuotes = !inQuotes;
+        } else if (c === ',' && !inQuotes) {
+          current.push(value);
+          value = "";
+        } else if ((c === '\n' || c === '\r') && !inQuotes) {
+          if (value !== "" || current.length > 0) {
+            current.push(value);
+            rows.push(current);
+            current = [];
+            value = "";
+          }
+        } else {
+          value += c;
+        }
+      }
+      if (value !== "" || current.length > 0) {
+        current.push(value);
+        rows.push(current);
+      }
+      return rows;
+    }
+
+    function formatISODate(d) {
+      const year  = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day   = String(d.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function formatHumanDate(d) {
+      const day   = String(d.getDate()).padStart(2, "0");
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const year  = d.getFullYear();
+      return `${day}.${month}.${year}`;
+    }
+
+    // Week from Sunday to Saturday around anchor date
+    function getWeekRange(anchorDateStr) {
+      const anchor = new Date(anchorDateStr + "T12:00:00");
+      const day    = anchor.getDay(); // 0 = Sunday
+      const start  = new Date(anchor);
+      start.setDate(anchor.getDate() - day);
+      const days = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(start);
+        d.setDate(start.getDate() + i);
+        days.push(d);
+      }
+      return days;
+    }
+
+    function badge(label, level) {
+      const span = document.createElement("span");
+      span.textContent = label;
+      span.classList.add("badge");
+      if (level === "low")      span.classList.add("badge-low");
+      if (level === "medium")   span.classList.add("badge-medium");
+      if (level === "high")     span.classList.add("badge-high");
+      if (level === "very-high")span.classList.add("badge-very-high");
+      return span;
+    }
+
+    function calcLoad(dayEvents) {
+      const houseCount  = dayEvents.filter(e => e.area === "house" || e.area === "בית" || e.area === "rental" || e.area === "השכרה").length;
+      const tourCount   = dayEvents.filter(e => e.area === "tour"  || e.area === "חוץ").length;
+      const rentalCount = dayEvents.filter(e => e.area === "rental"|| e.area === "השכרה").length;
+
+      let stageLevel, stageText;
+      if (houseCount === 0 && tourCount === 0) {
+        stageLevel = "low";    stageText = "No technical load";
+      } else if (houseCount === 0 && tourCount > 0) {
+        stageLevel = "medium"; stageText = "Low (tour only)";
+      } else if (houseCount === 1 && tourCount === 0) {
+        stageLevel = "medium"; stageText = "Medium (one evening in-house)";
+      } else if ((houseCount === 1 && tourCount >= 1) || (houseCount >= 2 && tourCount === 0)) {
+        stageLevel = "high";   stageText = "High (double shift or house + tour)";
+      } else {
+        stageLevel = "very-high"; stageText = "Very high (house + tours + rental)";
+      }
+
+      let costumeLevel, costumeText;
+      if (houseCount === 0) {
+        costumeLevel = "low";    costumeText = "Low (no in-house performances)";
+      } else if (houseCount === 1) {
+        costumeLevel = "medium"; costumeText = "Medium (one performance)";
+      } else {
+        costumeLevel = "high";   costumeText = "High (multiple in-house events)";
+      }
+
+      let logLevel, logText;
+      if (tourCount === 0 && houseCount <= 1 && rentalCount === 0) {
+        logLevel = "medium"; logText = "Medium (standard setup / strike)";
+      } else if (tourCount === 0 && (houseCount > 1 || rentalCount > 0)) {
+        logLevel = "high";   logText = "High (double in-house day or rental)";
+      } else if (tourCount >= 1 && houseCount === 0) {
+        logLevel = "high";   logText = "High (tour day)";
+      } else if (tourCount >= 1 && houseCount === 1) {
+        logLevel = "high";   logText = "High (house + tour)";
+      } else {
+        logLevel = "very-high"; logText = "Very high (house + tours + rental)";
+      }
+
+      return {
+        houseCount,
+        tourCount,
+        rentalCount,
+        stageLevel, stageText,
+        costumeLevel, costumeText,
+        logLevel, logText
+      };
+    }
+
+    function renderWeek(anchorDateStr) {
+      weekContainer.innerHTML = "";
+
+      const days  = getWeekRange(anchorDateStr);
+      const start = days[0];
+      const end   = days[6];
+
+      weekRangeEl.textContent =
+        `Week: ${formatHumanDate(start)} – ${formatHumanDate(end)} (around anchor date)`;
+
+      days.forEach(d => {
+        const dateStr   = formatISODate(d);
+        const dayEvents = events
+          .filter(e => e.date === dateStr)
+          .sort((a, b) => (a.time || "").localeCompare(b.time || ""));
+
+        const block = document.createElement("div");
+        block.classList.add("day-block");
+
+        const header = document.createElement("div");
+        header.classList.add("day-header");
+
+        const weekdayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const weekday = weekdayNames[d.getDay()];
+
+        const titleSpan = document.createElement("span");
+        titleSpan.textContent = weekday;
+
+        const dateSpan = document.createElement("span");
+        dateSpan.classList.add("date");
+        dateSpan.textContent = formatHumanDate(d);
+
+        header.appendChild(titleSpan);
+        header.appendChild(dateSpan);
+        block.appendChild(header);
+
+        if (dayEvents.length === 0) {
+          const empty = document.createElement("div");
+          empty.classList.add("empty-day");
+          empty.textContent = "No events on this day.";
+          block.appendChild(empty);
+        } else {
+          const table = document.createElement("table");
+          const thead = document.createElement("thead");
+          thead.innerHTML = `
+            <tr>
+              <th>Time</th>
+              <th>Title</th>
+              <th>Hall / City</th>
+              <th>Type</th>
+              <th>Note</th>
+            </tr>
+          `;
+          table.appendChild(thead);
+
+          const tbody = document.createElement("tbody");
+
+          dayEvents.forEach(e => {
+            const tr = document.createElement("tr");
+
+            const tdTime = document.createElement("td");
+            tdTime.textContent = e.time || "";
+            tr.appendChild(tdTime);
+
+            const tdTitle = document.createElement("td");
+            tdTitle.textContent = e.title;
+            tr.appendChild(tdTitle);
+
+            const tdHall = document.createElement("td");
+            tdHall.textContent = e.hall_or_city || "";
+            tr.appendChild(tdHall);
+
+            const tdArea = document.createElement("td");
+            const span = document.createElement("span");
+            span.classList.add("tag");
+
+            const areaVal = (e.area || "").toLowerCase();
+            if (areaVal === "house" || areaVal === "בית")   span.classList.add("tag-house");
+            if (areaVal === "tour"  || areaVal === "חוץ")   span.classList.add("tag-tour");
+            if (areaVal === "rental"|| areaVal === "השכרה") span.classList.add("tag-rental");
+
+            span.textContent = e.area || "";
+            tdArea.appendChild(span);
+            tr.appendChild(tdArea);
+
+            const tdNote = document.createElement("td");
+            tdNote.textContent = e.note || "";
+            tr.appendChild(tdNote);
+
+            tbody.appendChild(tr);
+          });
+
+          table.appendChild(tbody);
+          block.appendChild(table);
+
+          const load   = calcLoad(dayEvents);
+          const loadBox = document.createElement("div");
+          loadBox.classList.add("load-box");
+
+          const countsLine = document.createElement("div");
+          countsLine.textContent =
+            `House: ${load.houseCount} · Tour: ${load.tourCount} · Rental: ${load.rentalCount}`;
+          loadBox.appendChild(countsLine);
+
+          const rowStage = document.createElement("div");
+          rowStage.classList.add("load-row");
+          const lsLabel = document.createElement("span");
+          lsLabel.textContent = "Stage / Light / Sound:";
+          const lsVal = document.createElement("span");
+          lsVal.appendChild(badge(load.stageText, load.stageLevel));
+          rowStage.appendChild(lsLabel);
+          rowStage.appendChild(lsVal);
+          loadBox.appendChild(rowStage);
+
+          const rowCostume = document.createElement("div");
+          rowCostume.classList.add("load-row");
+          const lcLabel = document.createElement("span");
+          lcLabel.textContent = "Costume / Makeup / Props:";
+          const lcVal = document.createElement("span");
+          lcVal.appendChild(badge(load.costumeText, load.costumeLevel));
+          rowCostume.appendChild(lcLabel);
+          rowCostume.appendChild(lcVal);
+          loadBox.appendChild(rowCostume);
+
+          const rowLog = document.createElement("div");
+          rowLog.classList.add("load-row");
+          const llLabel = document.createElement("span");
+          llLabel.textContent = "Logistics / Touring:";
+          const llVal = document.createElement("span");
+          llVal.appendChild(badge(load.logText, load.logLevel));
+          rowLog.appendChild(llLabel);
+          rowLog.appendChild(llVal);
+          loadBox.appendChild(rowLog);
+
+          block.appendChild(loadBox);
+        }
+
+        weekContainer.appendChild(block);
+      });
+    }
+
+    // Tel Aviv clock (Asia/Jerusalem)
+    function updateClock() {
+      const clockEl = document.getElementById("taClock");
+      const now     = new Date();
+      const taStr   = now.toLocaleString("en-US", { timeZone: "Asia/Jerusalem" });
+      const taDate  = new Date(taStr);
+      const hh = String(taDate.getHours()).padStart(2, "0");
+      const mm = String(taDate.getMinutes()).padStart(2, "0");
+      const ss = String(taDate.getSeconds()).padStart(2, "0");
+      clockEl.textContent = `Tel Aviv time: ${hh}:${mm}:${ss}`;
+    }
+
+    function initAnchorDate() {
+      const now   = new Date();
+      const taStr = now.toLocaleString("en-US", { timeZone: "Asia/Jerusalem" });
+      const taNow = new Date(taStr);
+      const todayStr = formatISODate(taNow);
+      anchorInput.value = todayStr;       // always show real today
+      renderWeek(todayStr);               // even if no events – still correct week
+    }
+
+    function loadEvents() {
+      statusLine.textContent = "Loading data from Google Sheets…";
+      fetch(CSV_URL)
+        .then(res => {
+          if (!res.ok) {
+            throw new Error("HTTP " + res.status);
+          }
+          return res.text();
+        })
+        .then(text => {
+          const rows = parseCSV(text);
+          if (!rows || rows.length < 2) {
+            throw new Error("Empty CSV or no rows.");
+          }
+
+          const header = rows[0].map(h => h.trim().toLowerCase());
+          const idxDate  = header.indexOf("date");
+          const idxArea  = header.indexOf("area");
+          const idxTitle = header.indexOf("title");
+          const idxTime  = header.indexOf("time");
+          const idxHall  = header.indexOf("hall_or_city");
+          const idxNote  = header.indexOf("note");
+
+          if (idxDate === -1 || idxArea === -1 || idxTitle === -1) {
+            throw new Error("Required columns not found: date, area, title");
+          }
+
+          const out = rows.slice(1).map(row => {
+            const safe = i => (i >= 0 && i < row.length ? row[i].trim() : "");
+            return {
+              date: safe(idxDate),
+              area: safe(idxArea),
+              title: safe(idxTitle),
+              time: safe(idxTime),
+              hall_or_city: safe(idxHall),
+              note: safe(idxNote)
+            };
+          }).filter(e => e.date && e.title);
+
+          events = out;
+
+          statusLine.textContent = `Loaded ${events.length} events from sheet.`;
+        })
+        .catch(err => {
+          console.error(err);
+          statusLine.textContent =
+            "Error loading data from Google Sheets: " + err.message;
+          statusLine.classList.add("error");
+        });
+    }
+
+    // Init on page load
+    window.addEventListener("load", function () {
+      // clock always works
+      updateClock();
+      setInterval(updateClock, 1000);
+
+      // anchor date is always "today" in Tel Aviv
+      initAnchorDate();
+
+      // then we load events in the background
+      loadEvents();
+    });
+
+    anchorInput.addEventListener("change", function () {
+      if (anchorInput.value) {
+        renderWeek(anchorInput.value);
+      }
+    });
+  </script>
 </body>
 </html>
