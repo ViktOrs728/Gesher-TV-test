@@ -12,6 +12,27 @@ body{
     margin: 0;
     padding: 30px;
 }
+.header-bar{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+h1{
+    font-size: 60px;
+    margin: 0;
+}
+#clock {
+    font-size: 34px;
+    background:#111;
+    padding: 12px 25px;
+    border-radius: 10px;
+}
+.table-wrapper{
+    max-height: 75vh;
+    overflow-y: auto;
+    border: 2px solid #222;
+}
 
 h1{
     text-align: center;
@@ -24,6 +45,7 @@ table{
     width: 100%;
     border-collapse: collapse;
     font-size: 32px;
+    text-align: center;
 }
 
 th{
@@ -51,20 +73,46 @@ tr:nth-child(even){
 <body>
 
 <h1>לוח הצגות</h1>
+<div id="clock">--:--</div>
+</div>
 
 <table id="schedule">
-<tr>
+<div class="table-wrapper">
+    <table id="schedule">
+        <thead>
+        <tr>
     <th>תאריך</th>
     <th>שם ההצגה</th>
     <th>שעה</th>
     <th>מקום</th>
     <th>הערה</th>
     <th>אילוצים</th>
-</tr>
-</table>
+ </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
 
 <script>
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8VHJ7usLuV213YvhCULcjqMrH6M22QQ_cLDtP8f6u0cb7XXKbeBVzEoKRGmigGFm_EQvtN17sQGi2/pub?gid=0&single=true&output=csv"
+
+function getTelAvivTime(){
+    const now = new Date();
+    const options = {
+        timeZone: "Asia/Jerusalem",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+    }
+    return new Intl.DateTimeFormat("he-IL", options).format(now);
+}
+
+function updateClock(){
+    document.getElementById("clock").textContent = getTelAvivTime();
+}
+
+setInterval(updateClock, 1000);
+updateClock();
 
 async function loadSchedule() {
     const response = await fetch(CSV_URL);
@@ -102,7 +150,7 @@ async function loadSchedule() {
 }
 
 loadSchedule();
-setInterval(loadSchedule, 30000); // автообновление каждые 30 секунд
+setInterval(loadSchedule, 30000);
 </script>
 
 </body>
