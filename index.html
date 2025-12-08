@@ -418,16 +418,21 @@ function renderCalendar(){
   else
     prevBtn.style.visibility='visible';
 
+  // 1-е число месяца
   const first = new Date(viewYear, viewMonth, 1);
 
   // getDay(): 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-  let start = first.getDay(); // НИЧЕГО не трогаем, 0 — это первый столбец (воскресенье)
-  const total = new Date(viewYear, viewMonth + 1, 0).getDate();
-  
-  // Добавляем пустые ячейки перед первым числом месяца
-  for (let i = 0; i < start; i++) {
-  cal.appendChild(document.createElement('div'));
+  // В Израиле неделя начинается с воскресенья, поэтому 0 = первый столбец
+  let start = first.getDay();
 
+  const total = new Date(viewYear, viewMonth + 1, 0).getDate();
+
+  // Добавляем пустые ячейки до первого числа месяца
+  for (let i = 0; i < start; i++) {
+    cal.appendChild(document.createElement('div'));
+  }
+
+  // Основной цикл по дням месяца
   for(let d=1; d<=total; d++){
     const cell = document.createElement('div');
     cell.className='day';
@@ -435,17 +440,20 @@ function renderCalendar(){
     const iso = `${viewYear}-${String(viewMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const dt  = new Date(viewYear,viewMonth,d);
 
+    // Буква дня недели
     const letter = getWeekLetter(dt);
     const wl = document.createElement('div');
     wl.className = 'week-letter' + (letter==='ש'?' sabbath':'');
     wl.textContent = letter;
     cell.appendChild(wl);
 
+    // Число
     const dn = document.createElement('div');
     dn.className='date-number';
     dn.textContent=d;
     cell.appendChild(dn);
 
+    // События этого дня
     const todays = cachedEvents.filter(ev=>ev.dateISO===iso);
     todays.sort((a,b)=>{
       if(!a.time) return 1;
@@ -464,15 +472,18 @@ function renderCalendar(){
       cell.appendChild(evDiv);
     });
 
+    // Подсветка сегодняшнего дня
     if(viewYear===today.getFullYear() && viewMonth===today.getMonth() && d===today.getDate()){
       cell.style.outline = '3px solid var(--accent)';
     }
 
+    // Клик — открыть модалку
     cell.addEventListener('click', ()=>openModal(dt,todays));
+
     cal.appendChild(cell);
   }
 }
-
+  
 /* модальное окно */
 function openModal(dateObj, events){
   const modal = document.getElementById('modal');
