@@ -283,7 +283,7 @@ function splitMulti(text){
   return String(text).split(/\r?\n|;/).map(s=>s.trim()).filter(Boolean);
 }
 function getWeekLetter(d){
-  const arr=['ש','א','ב','ג','ד','י'ה'ו'];
+  const arr=['א','ב','ג','ד','ה','ו','ש'];
   return arr[d.getDay()];
 }
 function esc(s){
