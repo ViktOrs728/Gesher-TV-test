@@ -3,209 +3,439 @@
 <head>
 <meta charset="utf-8" />
 <title>תיאטרון גשר — לוח הצגות</title>
+
 <meta name="viewport" content="width=device-width,initial-scale=1">
+
+<!-- Красивая гарнитура для года в заголовке -->
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+
 <style>
+/* ---------------------------------------------------
+   БАЗОВЫЕ ПЕРЕМЕННЫЕ ЦВЕТА
+   --------------------------------------------------- */
 :root{
-  --bg:#ffffff; --card:#f5f5f5; --accent:#2563eb; --muted:#666; --event:#334155; --text:#000;
+  --bg:#ffffff;
+  --card:#f5f5f5;
+  --accent:#2563eb;
+  --text:#000;
+  --muted:#666;
 }
-*{box-sizing:border-box}
+
+/* Сброс */
+*{ box-sizing:border-box; }
+
 body{
-  margin:0; padding:18px; font-family: Arial, Helvetica, sans-serif; background:var(--bg); color:var(--text);
+  margin:0; padding:18px;
+  font-family: Arial, Helvetica, sans-serif;
+  background:var(--bg); color:var(--text);
 }
 
-/* TOP */
-.top-bar{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:6px;position:relative}
-#theatreName{font-weight:700;font-size:20px}
-#yearLabel{font-family:'Playfair Display',serif;font-size:44px;text-align:center;flex:1}
-#clock{min-width:140px;padding:8px 12px;border-radius:14px;background:#f0f0f0;border:1px solid #ddd;text-align:center;font-weight:600}
+/* ---------------------------------------------------
+   ВЕРХНЯЯ СТРОКА: НАЗВАНИЕ, ГОД, ЧАСЫ
+   --------------------------------------------------- */
+.top-bar{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:6px;
+  position:relative;
+}
 
-/* MONTH BAR */
-.month-bar{display:flex;justify-content:space-between;align-items:center;margin:12px 0 18px}
-.left-group{display:flex;align-items:center;gap:8px}
-#monthLabel{font-size:20px;font-weight:700}
-.btn-small{padding:6px 10px;border-radius:10px;border:1px solid #bbb;background:#fafafa;cursor:pointer;font-size:14px}
+#theatreName{
+  font-weight:700;
+  font-size:20px;
+}
 
-/* CALENDAR */
-#calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:10px}
-.day{background:var(--card);border-radius:16px;padding:10px;min-height:170px;position:relative;overflow:hidden;cursor:pointer}
-.day:hover{transform:translateY(-2px);transition:transform .12s}
-.week-letter{position:absolute;top:8px;left:10px;font-weight:700;opacity:.9;font-size:14px}
-.sabbath{color:#d33}
-.date-number{margin-top:26px;font-size:26px;font-weight:700}
-.event{margin-top:8px;padding-top:8px;border-top:1px solid #e3e3e3;font-size:14px;background:transparent}
-.ev-time{color:#3fb0ff;font-weight:700}
+#yearLabel{
+  font-family:'Playfair Display',serif;
+  font-size:44px;
+  text-align:center;
+  flex:1;
+}
 
-/* MODAL */
-#modal{position:fixed;inset:0;display:none;background:rgba(0,0,0,.55);align-items:center;justify-content:center;z-index:50}
-#modalContent{background:#fff;color:#000;border-radius:18px;padding:22px;max-width:820px;width:92%;max-height:90vh;overflow:auto;position:relative}
-#closeModal{position:absolute;left:16px;top:12px;font-size:22px;cursor:pointer}
+#clock{
+  min-width:140px;
+  padding:8px 12px;
+  border-radius:14px;
+  background:#f0f0f0;
+  border:1px solid #ddd;
+  text-align:center;
+  font-weight:600;
+  font-size:18px;
+}
 
-/* MOBILE */
+/* ---------------------------------------------------
+   СТРОКА МЕСЯЦА + КНОПКИ ПЕРЕКЛЮЧЕНИЯ
+   --------------------------------------------------- */
+.month-bar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin:12px 0 18px;
+}
+
+.left-group{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+#monthLabel{
+  font-size:20px;
+  font-weight:700;
+}
+
+.btn-small{
+  padding:6px 10px;
+  border-radius:10px;
+  border:1px solid #bbb;
+  background:#fafafa;
+  cursor:pointer;
+  font-size:14px;
+}
+.btn-small:hover{
+  background:#e6e6e6;
+}
+
+/* ---------------------------------------------------
+   САМ КАЛЕНДАРЬ
+   --------------------------------------------------- */
+#calendar{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:10px;
+}
+
+/* Каждый день-карточка */
+.day{
+  background:var(--card);
+  border-radius:16px;
+  padding:10px;
+  min-height:170px;
+  position:relative;
+  overflow:hidden;
+  cursor:pointer;
+  transition:0.12s;
+}
+.day:hover{
+  transform:translateY(-2px);
+}
+
+/* Буква дня недели в левом углу */
+.week-letter{
+  position:absolute;
+  top:8px;
+  left:10px;
+  font-weight:700;
+  opacity:.9;
+  font-size:14px;
+}
+
+/* Суббота — красная */
+.sabbath{ color:#d33; }
+
+/* Число дня */
+.date-number{
+  margin-top:26px;
+  font-size:26px;
+  font-weight:700;
+}
+
+/* Блок события */
+.event{
+  margin-top:8px;
+  padding-top:8px;
+  border-top:1px solid #e3e3e3;
+  font-size:14px;
+}
+.ev-time{
+  color:#3fb0ff;
+  font-weight:700;
+}
+
+/* ---------------------------------------------------
+   МОДАЛЬНОЕ ОКНО ДЛЯ ТЕЛЕФОНА
+   --------------------------------------------------- */
+#modal{
+  position:fixed;
+  inset:0;
+  display:none;
+  background:rgba(0,0,0,.55);
+  align-items:center;
+  justify-content:center;
+  z-index:50;
+}
+
+#modalContent{
+  background:#fff;
+  color:#000;
+  border-radius:18px;
+  padding:22px;
+  max-width:820px;
+  width:92%;
+  max-height:90vh;
+  overflow:auto;
+  position:relative;
+}
+
+#closeModal{
+  position:absolute;
+  left:16px;
+  top:12px;
+  font-size:22px;
+  cursor:pointer;
+}
+
+/* ---------------------------------------------------
+   МОБИЛЬНАЯ ВЕРСТКА
+   --------------------------------------------------- */
 @media(max-width:900px){
-  #calendar{grid-template-columns:1fr}
-  .day{min-height:110px}
-  .event{display:none}
-  #yearLabel{font-size:28px}
-  #monthLabel{font-size:18px}
+  #calendar{ grid-template-columns:1fr; }
+  .day{ min-height:100px; }
+  .event{ display:none; }
+  #yearLabel{ font-size:28px; }
+  #monthLabel{ font-size:18px; }
 }
 </style>
 </head>
+
 <body>
 
+<!-- ===================================================
+     ВЕРХНИЙ БЛОК: НАЗВАНИЕ ТЕАТРА, ГОД, ЧАСЫ
+     =================================================== -->
 <div class="top-bar">
   <div id="theatreName">תיאטרון גשר</div>
   <div id="yearLabel"></div>
   <div id="clock">--:--:--</div>
 </div>
 
+<!-- ===================================================
+     СТРОКА С МЕСЯЦЕМ И КНОПКАМИ НАВИГАЦИИ
+     =================================================== -->
 <div class="month-bar">
   <div class="left-group">
     <div id="monthLabel">—</div>
-    <button id="nextBtn" class="btn-small" title="חודש הבא">חודש הבא ▶</button>
+    <button id="nextBtn" class="btn-small">חודש הבא ▶</button>
   </div>
-  <div><button id="prevBtn" class="btn-small" title="חודש קודם" style="visibility:hidden">◀ חודש קודם</button></div>
+  <button id="prevBtn" class="btn-small" style="visibility:hidden">◀ חודש קודם</button>
 </div>
 
+<!-- ===================================================
+     КАЛЕНДАРЬ
+     =================================================== -->
 <div id="calendar"></div>
 
-<!-- modal -->
-<div id="modal"><div id="modalContent">
-  <div id="closeModal">✕</div>
-  <h2 id="modalDate"></h2>
-  <div id="modalEvents"></div>
-</div></div>
+<!-- ===================================================
+     МОДАЛЬНОЕ ОКНО
+     =================================================== -->
+<div id="modal">
+  <div id="modalContent">
+      <div id="closeModal">✕</div>
+      <h2 id="modalDate"></h2>
+      <div id="modalEvents"></div>
+  </div>
+</div>
 
 <script>
-/* --------- CONFIG --------- */
-const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8VHJ7usLuV213YvhCULcjqMrH6M22QQ_cLDtP8f6u0cb7XXKbeBVzEoKRGmigGFm_EQvtN17sQGi2/pub?output=csv";
+/* ======================================================
+   1. НАСТРОЙКИ
+   ====================================================== */
 
-/* state */
-let viewYear = (new Date()).getFullYear();
-let viewMonth = (new Date()).getMonth(); // 0-based
-const today = new Date();
+const CSV_URL =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8VHJ7usLuV213YvhCULcjqMrH6M22QQ_cLDtP8f6u0cb7XXKbeBVzEoKRGmigGFm_EQvtN17sQGi2/pub?output=csv";
 
-/* --------- CLOCK --------- */
+let cachedEvents = [];         // Хранилище всех событий
+const today = new Date();      // Текущая дата
+let viewYear = today.getFullYear();    // Просматриваемый год
+let viewMonth = today.getMonth();      // Просматриваемый месяц
+
+
+/* ======================================================
+   2. ЧАСЫ
+   ====================================================== */
 function updateClock(){
   const now = new Date();
-  const s = new Intl.DateTimeFormat('he-IL',{timeZone:'Asia/Jerusalem',hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(now);
+  const s = new Intl.DateTimeFormat('he-IL',{
+    timeZone:'Asia/Jerusalem',
+    hour:'2-digit',
+    minute:'2-digit',
+    second:'2-digit'
+  }).format(now);
+
   document.getElementById('clock').textContent = s;
 }
 setInterval(updateClock,1000);
 updateClock();
 
-/* --------- CSV PARSER (robust) --------- */
+
+/* ======================================================
+   3. ПАРСЕР CSV (устойчивый, поддерживает кавычки)
+   ====================================================== */
 function parseCSV(text){
-  // remove BOM
   if(text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
-  const rows = []; let row = [], cell = '', inQ=false;
+
+  const rows = [];
+  let row = [], cell = "", inQ = false;
+
   for(let i=0;i<text.length;i++){
     const c = text[i], n = text[i+1];
+
     if(c === '"'){
       if(inQ && n === '"'){ cell += '"'; i++; continue; }
-      inQ = !inQ; continue;
-    }
-    if(c === ',' && !inQ){ row.push(cell.trim()); cell=''; continue; }
-    if((c === '\n' || c === '\r') && !inQ){
-      if(cell !== '' || row.length){ row.push(cell.trim()); rows.push(row); row=[]; cell=''; }
+      inQ = !inQ;
       continue;
     }
+
+    if(c === ',' && !inQ){
+      row.push(cell.trim()); cell=""; continue;
+    }
+
+    if((c==='\n'||c==='\r') && !inQ){
+      if(cell !== "" || row.length){
+        row.push(cell.trim());
+        rows.push(row);
+      }
+      row=[]; cell="";
+      continue;
+    }
+
     cell += c;
   }
-  if(cell !== '' || row.length){ row.push(cell.trim()); rows.push(row); }
+
+  // последняя строка
+  if(cell !== "" || row.length){
+    row.push(cell.trim());
+    rows.push(row);
+  }
+
   return rows;
 }
 
-/* --------- normalize date --------- */
-function tryParseDateRaw(s, fallbackYear){
-  if(!s) return null;
-  s = String(s).trim();
-  // ISO
-  if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-  // dd.mm.yyyy or dd.mm
+
+/* ======================================================
+   4. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+   ====================================================== */
+
+/* Разбиваем "многострочные ячейки" (столбиком) */
+function splitMulti(text){
+  if(!text && text !== 0) return [];
+  return String(text)
+    .split(/\r?\n|;/)
+    .map(s => s.trim())
+    .filter(Boolean);
+}
+
+/* Определяем букву дня недели */
+function getWeekLetter(dateObj){
+  const letters = ['א','ב','ג','ד','ה','ו','ש'];
+  return letters[dateObj.getDay()];
+}
+
+/* Преобразуем формат даты из ячейки таблицы → ISO yyyy-mm-dd */
+function parseDate(raw, fallbackYear){
+  raw = String(raw).trim();
+
+  // формат YYYY-MM-DD
+  if(/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+
+  // dd.mm[.yyyy] или dd/mm
   let parts = null;
-  if(s.includes('.')) parts = s.split('.');
-  else if(s.includes('/')) parts = s.split('/');
+  if(raw.includes('.')) parts = raw.split('.');
+  else if(raw.includes('/')) parts = raw.split('/');
   else {
-    // maybe only day number
-    if(/^\d{1,2}$/.test(s)){
-      const d = String(Number(s)).padStart(2,'0');
-      const mm = String(viewMonth+1).padStart(2,'0');
-      const yy = fallbackYear;
-      return `${yy}-${mm}-${d}`;
+    // возможно только число дня
+    if(/^\d{1,2}$/.test(raw)){
+      const d = String(Number(raw)).padStart(2,'0');
+      const m = String(viewMonth+1).padStart(2,'0');
+      return `${fallbackYear}-${m}-${d}`;
     }
     return null;
   }
+
   if(parts.length >= 2){
     let d = String(Number(parts[0])).padStart(2,'0');
     let m = String(Number(parts[1])).padStart(2,'0');
-    let y = parts[2] ? parts[2].trim() : '';
-    if(y.length === 0) y = String(fallbackYear);
-    else if(y.length === 2) y = '20'+y;
+    let y = parts[2] ? parts[2].trim() : fallbackYear;
+    if(y.length === 2) y = '20'+y;
     return `${y}-${m}-${d}`;
   }
+
   return null;
 }
 
-/* --------- read CSV and produce events --------- */
+/* escaping HTML */
+function esc(s){
+  return String(s||'')
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;');
+}
+
+
+/* ======================================================
+   5. ЗАГРУЗКА ДАННЫХ ИЗ GOOGLE SHEET
+   ====================================================== */
 async function loadEvents(){
-  const res = await fetch(CSV_URL, {cache:'no-store'});
+  const res = await fetch(CSV_URL,{cache:'no-store'});
   const txt = await res.text();
   const rows = parseCSV(txt);
-  if(!rows || rows.length < 1) return [];
 
-  const header = rows[0].map(h => (h||'').trim());
-  const lower = header.map(h => h.toLowerCase());
+  if(!rows.length) return [];
 
-  function idx(names){
+  const header = rows[0].map(h => h.trim().toLowerCase());
+
+  // Функция поиска индекса по названию колонки
+  function col(...names){
     for(const n of names){
-      const i = lower.indexOf(n.toLowerCase());
-      if(i>=0) return i;
+      const i = header.indexOf(n.toLowerCase());
+      if(i >= 0) return i;
     }
     return -1;
   }
 
-  const cols = {
-    date: idx(['תאריך','date']),
-    title: idx(['שם ההצגה','title']),
-    time: idx(['שעה','time']),
-    place: idx(['מקום','place']),
-    note: idx(['הערה','note']),
-    limits: idx(['אילוצים','limits']),
-    ex_title: idx(['ההצגה חוצ','הצגה חוץ']),
-    ex_time: idx(['שעה חוצ']),
-    ex_place: idx(['מקום חוצ'])
+  const ci = {
+    date: col('תאריך','date'),
+    title: col('שם ההצגה','title'),
+    time: col('שעה','time'),
+    place: col('מקום','place'),
+    note: col('הערה','note'),
+    limits: col('אילוצים','limits'),
+    ext_title: col('ההצגה חוצ'),
+    ext_time: col('שעה חוצ'),
+    ext_place: col('מקום חוצ')
   };
 
-  // find any explicit year in the date column to use as default year
-  let foundYear = null;
-  for(let r=1;r<rows.length;r++){
-    const cell = (rows[r][cols.date]||'').toString();
-    const m = cell.match(/\b(\d{4})\b/);
+  // Определяем год, если он встречается в таблице
+  let foundYear = today.getFullYear();
+  for(let i=1;i<rows.length;i++){
+    const m = String(rows[i][ci.date]||'').match(/\b(\d{4})\b/);
     if(m){ foundYear = Number(m[1]); break; }
   }
-  const defaultYear = foundYear || viewYear;
 
   const events = [];
-  for(let r=1;r<rows.length;r++){
-    const row = rows[r];
-    const rawDate = row[cols.date] || '';
+
+  for(let i=1;i<rows.length;i++){
+    const row = rows[i];
+    const rawDate = row[ci.date];
     if(!rawDate) continue;
 
-    // normalize normal events
-    const titles = splitMulti(row[cols.title]);
-    const times  = splitMulti(row[cols.time]);
-    const places = splitMulti(row[cols.place]);
-    const notes  = splitMulti(row[cols.note]);
-    const limits = splitMulti(row[cols.limits]);
+    const iso = parseDate(rawDate, foundYear);
+    if(!iso) continue;
+
+    /* основной блок */
+    const titles = splitMulti(row[ci.title]);
+    const times  = splitMulti(row[ci.time]);
+    const places = splitMulti(row[ci.place]);
+    const notes  = splitMulti(row[ci.note]);
+    const limits = splitMulti(row[ci.limits]);
 
     const max = Math.max(titles.length, times.length, places.length, notes.length, limits.length, 1);
 
     for(let k=0;k<max;k++){
-      const dt = tryParseDateRaw(rawDate, defaultYear);
-      if(!dt) continue;
       events.push({
-        dateISO: dt,
+        dateISO: iso,
         title: titles[k] || '',
         time: times[k] || '',
         place: places[k] || '',
@@ -214,22 +444,21 @@ async function loadEvents(){
       });
     }
 
-    // external (חוץ)
-    const exT = splitMulti(row[cols.ex_title]);
-    const exTi = splitMulti(row[cols.ex_time]);
-    const exP = splitMulti(row[cols.ex_place]);
-    const maxE = Math.max(exT.length, exTi.length, exP.length);
+    /* блок חוץ */
+    const extT = splitMulti(row[ci.ext_title]);
+    const extTi = splitMulti(row[ci.ext_time]);
+    const extP = splitMulti(row[ci.ext_place]);
+    const maxE = Math.max(extT.length, extTi.length, extP.length);
+
     for(let k=0;k<maxE;k++){
-      const dt = tryParseDateRaw(rawDate, defaultYear);
-      if(!dt) continue;
-      if(!exT[k] && !exTi[k] && !exP[k]) continue;
+      if(!extT[k] && !extTi[k] && !extP[k]) continue;
       events.push({
-        dateISO: dt,
-        title: '⭐ '+(exT[k]||''),
-        time: exTi[k]||'',
-        place: exP[k]||'',
-        note: '',
-        limits: 'חוץ'
+        dateISO: iso,
+        title: '⭐ '+(extT[k]||''),
+        time: extTi[k]||'',
+        place: extP[k]||'',
+        note:'',
+        limits:'חוץ'
       });
     }
   }
@@ -237,68 +466,58 @@ async function loadEvents(){
   return events;
 }
 
-function splitMulti(text){
-  if(!text && text !== 0) return [];
-  return String(text).split(/\r?\n|;/).map(s=>s.trim()).filter(Boolean);
-}
 
-/* --------- UI helpers --------- */
-function getWeekLetterFromDateObj(dt){
-  const letters = ['א','ב','ג','ד','ה','ו','ש'];
-  return letters[dt.getDay()];
-}
-
-/* --------- render calendar --------- */
-let cachedEvents = [];
-async function refreshAndRender(){
-  cachedEvents = await loadEvents();
-  renderCalendar();
-}
-
+/* ======================================================
+   6. РЕНДЕР КАЛЕНДАРЯ
+   ====================================================== */
 function renderCalendar(){
-  const container = document.getElementById('calendar');
-  container.innerHTML = '';
+  const cal = document.getElementById('calendar');
+  cal.innerHTML = '';
 
-  // header labels
+  // обновляем заголовок
   document.getElementById('yearLabel').textContent = viewYear;
-  document.getElementById('monthLabel').textContent = 
-    new Intl.DateTimeFormat('he-IL',{month:'long', year:'numeric'}).format(new Date(viewYear, viewMonth, 1)).replace(/\s+\d+$/,'');
+  document.getElementById('monthLabel').textContent =
+    new Intl.DateTimeFormat('he-IL',{month:'long'}).format(new Date(viewYear,viewMonth,1));
 
-  // show/hide prev button
-  const prevBtn = document.getElementById('prevBtn');
-  if(viewYear === today.getFullYear() && viewMonth === today.getMonth()) prevBtn.style.visibility = 'hidden';
-  else prevBtn.style.visibility = 'visible';
+  // скрываем кнопку "предыдущий" в текущем месяце
+  if(viewYear === today.getFullYear() && viewMonth === today.getMonth())
+    prevBtn.style.visibility = 'hidden';
+  else
+    prevBtn.style.visibility = 'visible';
 
+  // считаем дни месяца
   const first = new Date(viewYear, viewMonth, 1);
-  let start = first.getDay(); if(start===0) start = 7; // Sunday -> put at end? preserve visual
+  let start = first.getDay(); if(start === 0) start = 7;
   const total = new Date(viewYear, viewMonth+1, 0).getDate();
 
-  for(let i=1;i<start;i++) container.appendChild(document.createElement('div'));
+  // пустые клетки до начала месяца
+  for(let i=1;i<start;i++) cal.appendChild(document.createElement('div'));
 
-  for(let d=1; d<= total; d++){
+  // создаём день за днём
+  for(let d=1; d<=total; d++){
     const cell = document.createElement('div');
     cell.className = 'day';
 
-    const fullISO = `${viewYear}-${String(viewMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const dtObj = new Date(viewYear, viewMonth, d);
+    const iso = `${viewYear}-${String(viewMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dt = new Date(viewYear, viewMonth, d);
 
-    // week letter in top-left
-    const letter = getWeekLetterFromDateObj(dtObj);
-    const letterDiv = document.createElement('div');
-    letterDiv.className = 'week-letter' + (letter === 'ש' ? ' sabbath' : '');
-    letterDiv.textContent = letter;
-    cell.appendChild(letterDiv);
+    /* буква дня недели */
+    const letter = getWeekLetter(dt);
+    const w = document.createElement('div');
+    w.className = 'week-letter' + (letter === 'ש' ? ' sabbath' : '');
+    w.textContent = letter;
+    cell.appendChild(w);
 
-    // date number
+    /* число дня */
     const dn = document.createElement('div');
     dn.className = 'date-number';
     dn.textContent = d;
     cell.appendChild(dn);
 
-    // events for this day
-    const todays = cachedEvents.filter(ev => ev.dateISO === fullISO);
+    /* события дня */
+    const todays = cachedEvents.filter(ev => ev.dateISO === iso);
 
-    // sort by time if present
+    // сортируем по времени
     todays.sort((a,b)=>{
       if(!a.time) return 1;
       if(!b.time) return -1;
@@ -306,60 +525,96 @@ function renderCalendar(){
     });
 
     todays.forEach(ev=>{
-      const evDiv = document.createElement('div');
-      evDiv.className = 'event';
-      evDiv.innerHTML = `<div class="ev-time">${escapeHtml(ev.time)}</div><b>${escapeHtml(ev.title)}</b><div>${escapeHtml(ev.place)}</div>`;
-      cell.appendChild(evDiv);
+      const eDiv = document.createElement('div');
+      eDiv.className = 'event';
+      eDiv.innerHTML = `
+        <div class="ev-time">${esc(ev.time)}</div>
+        <b>${esc(ev.title)}</b>
+        <div>${esc(ev.place)}</div>
+      `;
+      cell.appendChild(eDiv);
     });
 
-    // highlight today
+    /* выделяем сегодняшний день */
     if(viewYear === today.getFullYear() && viewMonth === today.getMonth() && d === today.getDate()){
-      cell.style.outline = `3px solid ${getComputedStyle(document.documentElement).getPropertyValue('--accent') || '#2563eb'}`;
+      cell.style.outline = `3px solid var(--accent)`;
     }
 
-    // click opens modal only on phone/tablet or always as requested
-    cell.addEventListener('click', ()=> openModal(dtObj, todays));
-    container.appendChild(cell);
+    /* модальное окно по клику */
+    cell.addEventListener('click', ()=> openModal(dt, todays));
+
+    cal.appendChild(cell);
   }
 }
 
-/* --------- modal --------- */
+
+/* ======================================================
+   7. МОДАЛЬНОЕ ОКНО
+   ====================================================== */
 function openModal(dateObj, events){
   const modal = document.getElementById('modal');
-  const modalDate = document.getElementById('modalDate');
-  const modalEvents = document.getElementById('modalEvents');
-  modalDate.textContent = new Intl.DateTimeFormat('he-IL',{weekday:'long', day:'numeric', month:'long', year:'numeric'}).format(dateObj);
-  modalEvents.innerHTML = '';
-  if(!events.length) modalEvents.innerHTML = '<p>אין אירועים ביום זה</p>';
+  document.getElementById('modalDate').textContent =
+    new Intl.DateTimeFormat('he-IL',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(dateObj);
+
+  const list = document.getElementById('modalEvents');
+  list.innerHTML = '';
+
+  if(!events.length){
+    list.innerHTML = '<p>אין אירועים ביום זה</p>';
+  }
+
   events.forEach(ev=>{
     const div = document.createElement('div');
     div.style.marginBottom = '12px';
-    div.innerHTML = `<h3>${escapeHtml(ev.title)}</h3><p>שעה: ${escapeHtml(ev.time)}</p><p>מקום: ${escapeHtml(ev.place)}</p>${ev.note?`<p>הערה: ${escapeHtml(ev.note)}</p>`:''}${ev.limits?`<p>אילוצים: ${escapeHtml(ev.limits)}</p>`:''}<hr>`;
-    modalEvents.appendChild(div);
+    div.innerHTML = `
+      <h3>${esc(ev.title)}</h3>
+      <p>שעה: ${esc(ev.time)}</p>
+      <p>מקום: ${esc(ev.place)}</p>
+      ${ev.note ? `<p>הערה: ${esc(ev.note)}</p>` : ''}
+      ${ev.limits ? `<p>אילוצים: ${esc(ev.limits)}</p>` : ''}
+      <hr>
+    `;
+    list.appendChild(div);
   });
+
   modal.style.display = 'flex';
 }
-document.getElementById('closeModal').onclick = ()=> document.getElementById('modal').style.display='none';
-document.getElementById('modal').onclick = (e)=>{ if(e.target.id==='modal') document.getElementById('modal').style.display='none'; };
 
-/* --------- helpers --------- */
-function escapeHtml(s){ if(!s && s !== 0) return ''; return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+/* закрытие модалки */
+closeModal.onclick = ()=> modal.style.display='none';
+modal.onclick = (e)=>{ if(e.target.id==='modal') modal.style.display='none'; };
 
-/* --------- buttons --------- */
-document.getElementById('nextBtn').addEventListener('click', ()=>{
+
+/* ======================================================
+   8. КНОПКИ МЕСЯЦЕВ
+   ====================================================== */
+nextBtn.onclick = ()=>{
   viewMonth++;
   if(viewMonth > 11){ viewMonth = 0; viewYear++; }
-  refreshAndRender();
-});
-document.getElementById('prevBtn').addEventListener('click', ()=>{
+  renderCalendar();
+};
+
+prevBtn.onclick = ()=>{
   viewMonth--;
   if(viewMonth < 0){ viewMonth = 11; viewYear--; }
-  refreshAndRender();
-});
+  renderCalendar();
+};
 
-/* --------- init --------- */
-refreshAndRender();
-setInterval(refreshAndRender, 30000);
+
+/* ======================================================
+   9. ИНИЦИАЛИЗАЦИЯ
+   ====================================================== */
+async function start(){
+  cachedEvents = await loadEvents();
+  renderCalendar();
+}
+
+start();
+
+/* периодическое обновление данных из таблицы */
+setInterval(start,30_000);
+
 </script>
+
 </body>
 </html>
