@@ -128,7 +128,7 @@ body{
   margin-top:6px;
   padding-top:6px;
   border-top:1px solid #e3e3e3;
-  font-size:12px;           /* мелкий текст спектакля */
+  font-size:12px;
   line-height:1.2;
 }
 .ev-time{
@@ -186,7 +186,7 @@ body{
     font-size:16px;
   }
   .event{
-    font-size:9px;      /* ещё мельче, чтобы влезал текст */
+    font-size:9px;      /* мельче для телефонов */
     padding-top:4px;
   }
   .ev-time{
@@ -233,7 +233,6 @@ body{
 </div>
 
 <script>
-/* === конфигурация === */
 const CSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8VHJ7usLuV213YvhCULcjqMrH6M22QQ_cLDtP8f6u0cb7XXKbeBVzEoKRGmigGFm_EQvtN17sQGi2/pub?output=csv";
 
@@ -241,6 +240,11 @@ let cachedEvents = [];
 const today = new Date();
 let viewYear = today.getFullYear();
 let viewMonth = today.getMonth();
+
+const nextBtn = document.getElementById('nextBtn');
+const prevBtn = document.getElementById('prevBtn');
+const modal = document.getElementById('modal');
+const closeModal = document.getElementById('closeModal');
 
 /* === часы === */
 function updateClock(){
@@ -283,7 +287,7 @@ function splitMulti(text){
   return String(text).split(/\r?\n|;/).map(s=>s.trim()).filter(Boolean);
 }
 function getWeekLetter(d){
-  const arr=['א','ב','ג','ד','ה','ו','ש'];
+  const arr=['א','ב','ג','ד','ה','ו','ש']; // 0=Sunday=א ... 6=Saturday=ש
   return arr[d.getDay()];
 }
 function esc(s){
@@ -292,8 +296,6 @@ function esc(s){
     .replaceAll('<','&lt;')
     .replaceAll('>','&gt;');
 }
-
-/* парсинг дат */
 function parseDate(raw, fallbackYear){
   raw = String(raw||'').trim();
   if(!raw) return null;
@@ -346,7 +348,7 @@ async function loadEvents(){
     ext_place: col('מקום חוצ')
   };
 
-  // пытаемся найти год в таблице
+  // ищем год в столбце даты
   let foundYear = today.getFullYear();
   for(let i=1;i<rows.length;i++){
     const m = String(rows[i][ci.date]||'').match(/\b(\d{4})\b/);
@@ -403,7 +405,7 @@ async function loadEvents(){
   return events;
 }
 
-/* рендер календаря */
+/* рендер календаря — ТУТ УЖЕ ВОСКРЕСЕНЬЕ ПЕРВЫЙ ДЕНЬ НЕДЕЛИ */
 function renderCalendar(){
   const cal = document.getElementById('calendar');
   cal.innerHTML='';
@@ -412,27 +414,21 @@ function renderCalendar(){
   document.getElementById('monthLabel').textContent =
     new Intl.DateTimeFormat('he-IL',{month:'long'}).format(new Date(viewYear,viewMonth,1));
 
-  const prevBtn = document.getElementById('prevBtn');
   if(viewYear===today.getFullYear() && viewMonth===today.getMonth())
     prevBtn.style.visibility='hidden';
   else
     prevBtn.style.visibility='visible';
 
-  // 1-е число месяца
-  const first = new Date(viewYear, viewMonth, 1);
+  const first = new Date(viewYear,viewMonth,1);
+  // getDay(): 0=Sunday, 1=Monday, ..., 6=Saturday
+  let start = first.getDay();   // 0 = воскресенье, он теперь ПЕРВЫЙ столбец
+  const total = new Date(viewYear,viewMonth+1,0).getDate();
 
-  // getDay(): 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-  // В Израиле неделя начинается с воскресенья, поэтому 0 = первый столбец
-  let start = first.getDay();
-
-  const total = new Date(viewYear, viewMonth + 1, 0).getDate();
-
-  // Добавляем пустые ячейки до первого числа месяца
-  for (let i = 0; i < start; i++) {
+  // добавляем пустые клетки ПЕРЕД первым числом (воскресенье=0 → 0 пустых)
+  for(let i=0;i<start;i++){
     cal.appendChild(document.createElement('div'));
   }
 
-  // Основной цикл по дням месяца
   for(let d=1; d<=total; d++){
     const cell = document.createElement('div');
     cell.className='day';
@@ -440,20 +436,17 @@ function renderCalendar(){
     const iso = `${viewYear}-${String(viewMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const dt  = new Date(viewYear,viewMonth,d);
 
-    // Буква дня недели
     const letter = getWeekLetter(dt);
     const wl = document.createElement('div');
     wl.className = 'week-letter' + (letter==='ש'?' sabbath':'');
     wl.textContent = letter;
     cell.appendChild(wl);
 
-    // Число
     const dn = document.createElement('div');
     dn.className='date-number';
     dn.textContent=d;
     cell.appendChild(dn);
 
-    // События этого дня
     const todays = cachedEvents.filter(ev=>ev.dateISO===iso);
     todays.sort((a,b)=>{
       if(!a.time) return 1;
@@ -472,21 +465,17 @@ function renderCalendar(){
       cell.appendChild(evDiv);
     });
 
-    // Подсветка сегодняшнего дня
     if(viewYear===today.getFullYear() && viewMonth===today.getMonth() && d===today.getDate()){
       cell.style.outline = '3px solid var(--accent)';
     }
 
-    // Клик — открыть модалку
     cell.addEventListener('click', ()=>openModal(dt,todays));
-
     cal.appendChild(cell);
   }
 }
-  
-/* модальное окно */
+
+/* модалка */
 function openModal(dateObj, events){
-  const modal = document.getElementById('modal');
   document.getElementById('modalDate').textContent =
     new Intl.DateTimeFormat('he-IL',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(dateObj);
 
@@ -514,18 +503,18 @@ function openModal(dateObj, events){
   modal.style.display='flex';
 }
 
-document.getElementById('closeModal').onclick = ()=> document.getElementById('modal').style.display='none';
-document.getElementById('modal').onclick = e=>{
-  if(e.target.id==='modal') document.getElementById('modal').style.display='none';
+closeModal.onclick = ()=> modal.style.display='none';
+modal.onclick = e=>{
+  if(e.target.id==='modal') modal.style.display='none';
 };
 
 /* кнопки месяцев */
-document.getElementById('nextBtn').onclick = ()=>{
+nextBtn.onclick = ()=>{
   viewMonth++;
   if(viewMonth>11){ viewMonth=0; viewYear++; }
   renderCalendar();
 };
-document.getElementById('prevBtn').onclick = ()=>{
+prevBtn.onclick = ()=>{
   viewMonth--;
   if(viewMonth<0){ viewMonth=11; viewYear--; }
   renderCalendar();
