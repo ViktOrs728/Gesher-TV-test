@@ -1,359 +1,408 @@
 <!DOCTYPE html>
-<html dir="rtl">
+<html lang="he" dir="rtl">
 <head>
-<meta charset="utf-8">
-<title>GESHER – לוח חודשי</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<title>GESHER Calendar</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
-  :root {
-    --bg: #0f172a;
-  --card: #1e293b;
-  --accent: #2563eb;
-  --muted: #94a3b8;
-  --event: #334155;
-  --text: #ffffff;
-}
-
-* { box-sizing: border-box; }
-
-body {
-  margin: 0;
-  padding: 16px;
+body{
+  margin:0;
   font-family: Arial, sans-serif;
-  background: var(--bg);
-  color: var(--text);
+  background:#ffffff;
+  color:#000;
+  padding:20px;
 }
 
-.top {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 16px;
+header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:20px;
 }
 
-h1 {
-  margin: 0;
-  font-size: 32px;
-  text-align: center;
+#logo{
+  height:80px;
 }
 
-#clock {
-  background: #ffffff;
-  color: #000;
-  padding: 6px 14px;
-  border-radius: 10px;
-  font-weight: 600;
+#monthLabel{
+  font-size:42px;
+  text-align:center;
+  flex:1;
 }
 
-.nav {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-  margin: 14px 0 16px;
-  flex-wrap: wrap;
+#clock{
+  font-size:28px;
 }
 
-.nav .btn {
-  background: var(--card);
-  color: var(--text);
-  border: none;
-  padding: 8px 12px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-.monthTitle {
-  font-size: 20px;
-  font-weight: 700;
-  text-align: center;
-  width: 100%;
-}
-
-.weekdays {
-  display: grid;
+.weekdays{
+  display:grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
-  text-align: center;
-  color: var(--muted);
-  font-weight: 600;
-  margin-bottom: 6px;
-  font-size: 14px;
+  text-align:center;
+  font-weight:bold;
+  padding-bottom:10px;
 }
 
-/* Calendar grid */
-.calendar {
-  display: grid;
+.weekdays div{
+  padding:10px 0;
+}
+
+#calendar{
+  display:grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
+  gap:10px;
 }
 
-/* Day cell */
-.day {
-  background: var(--card);
-  border-radius: 10px;
-  padding: 8px;
-  min-height: 150px;
-  display: flex;
-  flex-direction: column;
-  font-size: 13px;
+.day{
+  min-height:160px;
+  background:#f5f5f5;
+  border-radius:20px;
+  padding:8px 10px 10px;
+  position:relative;
+  overflow:hidden;
+  cursor:pointer;
 }
 
-.day h2 {
-  margin: 0 0 4px 0;
-  font-size: 14px;
-  color: var(--muted);
+.day:hover{
+  background:#ebebeb;
 }
 
-.today {
-  background: var(--accent);
+.today{
+  outline:3px solid #2d837a;
 }
 
-/* Event card */
-.event {
-  margin-top: 6px;
-  padding: 5px;
-  background: var(--event);
-  border-radius: 6px;
-  font-size: 12px;
-  line-height: 1.2;
+.date-number{
+  font-size:28px;
+  font-weight:bold;
 }
 
-.ev-time {
-  color: #9be7ff;
-  font-weight: 600;
+.hebrew-date{
+  position:absolute;
+  top:8px;
+  left:10px;
+  font-size:13px;
+  opacity:0.6;
 }
 
-/* ===== PHONE FIX ===== */
-@media (max-width: 700px) {
-
-  .weekdays {
-    display: none;
-  }
-
-  .calendar {
-    grid-template-columns: 1fr;
-  }
-
-  .day {
-    min-height: auto;
-    padding: 12px;
-    font-size: 14px;
-  }
-
-  .day h2 {
-    font-size: 18px;
-    margin-bottom: 6px;
-  }
-
-  .event {
-    font-size: 14px;
-    padding: 8px;
-  }
+.event{
+  font-size:15px;
+  margin-top:8px;
+  padding-top:6px;
+  border-top:1px solid #ccc;
 }
 
-/* ===== TABLET ===== */
-@media (min-width: 701px) and (max-width: 1100px){
-  .calendar {
-    grid-template-columns: repeat(4, 1fr);
-  }
+.ev-time{
+  font-weight:bold;
+}
 
-  .day {
-    min-height: 180px;
-  }
-  }
+
+/* --------- MODAL --------- */
+
+#modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.6);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:200;
+}
+
+#modalContent{
+  width:90%;
+  max-width:700px;
+  max-height:90vh;
+  background:#ffffff;
+  color:#000;
+  border-radius:25px;
+  padding:25px;
+  overflow-y:auto;
+  position:relative;
+}
+
+#closeModal{
+  position:absolute;
+  top:15px;
+  left:20px;
+  font-size:24px;
+  cursor:pointer;
+}
+
+/* --------- MOBILE --------- */
+
+@media (max-width: 800px){
+  #calendar{ gap:5px; }
+  .day{ min-height:90px; }
+  .event{ display:none; }  /* на телефоне — только кратко, детально по клику */
+  .date-number{ font-size:20px; }
+  #monthLabel{ font-size:26px; }
+}
 </style>
 </head>
+
 <body>
 
-<div class="top">
-  <h1>לוח הצגות</h1>
-  <div id="clock">--:--:--</div>
-</div>
-
-<div class="nav">
-  <button class="btn" id="prevBtn">חודש קודם</button>
-  <div class="monthTitle" id="monthTitle">—</div>
-  <button class="btn" id="nextBtn">חודש הבא</button>
-</div>
+<header>
+  <img id="logo" src="https://www.gesher-theatre.co.il/images/logo.png">
+  <div id="monthLabel"></div>
+  <div id="clock">--:--</div>
+</header>
 
 <div class="weekdays">
-  <div>א׳</div><div>ב׳</div><div>ג׳</div><div>ד׳</div><div>ה׳</div><div>ו׳</div><div>ש׳</div>
+  <div>א</div><div>ב</div><div>ג</div>
+  <div>ד</div><div>ה</div><div>ו</div><div>ש</div>
 </div>
 
-<div id="calendar" class="calendar"></div>
+<div id="calendar"></div>
+
+
+<!-- MODAL -->
+<div id="modal">
+  <div id="modalContent">
+      <div id="closeModal">✕</div>
+      <h2 id="modalDate"></h2>
+      <div id="modalEvents"></div>
+  </div>
+</div>
+
 
 <script>
-// === НАСТРОЙКИ ===
-const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8VHJ7usLuV213YvhCULcjqMrH6M22QQ_cLDtP8f6u0cb7XXKbeBVzEoKRGmigGFm_EQvtN17sQGi2/pub?gid=0&single=true&output=csv";
 
-// стартовый месяц — текущий
-let viewDate = new Date();
+/* === CONFIG === */
 
-// --- Clock ---
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8VHJ7usLuV213YvhCULcjqMrH6M22QQ_cLDtP8f6u0cb7XXKbeBVzEoKRGmigGFm_EQvtN17sQGi2/pub?output=csv";
+
+
+/* === CLOCK === */
+
 function updateClock(){
   const now = new Date();
-  const options = { timeZone:"Asia/Jerusalem", hour:"2-digit", minute:"2-digit", second:"2-digit" };
   document.getElementById("clock").textContent =
-    new Intl.DateTimeFormat("he-IL", options).format(now);
+    new Intl.DateTimeFormat("he-IL",
+      {timeZone:"Asia/Jerusalem",hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(now);
 }
-setInterval(updateClock, 1000);
+setInterval(updateClock,1000);
 updateClock();
 
-// --- CSV parsing util ---
+
+
+/* === HEBREW DATE === */
+
+function getHebrewDate(date){
+  return new Intl.DateTimeFormat('he-IL-u-ca-hebrew',{day:'numeric',month:'long'}).format(date);
+}
+
+
+/* === CSV PARSER === */
+
 function parseCSV(text){
   const rows = [];
-  let cur = "", row = [], inside = false;
-  for (let i=0;i<text.length;i++){
-    const ch = text[i], nxt = text[i+1];
-    if (ch === '"' && inside && nxt === '"') { cur += '"'; i++; continue; }
-    if (ch === '"') { inside = !inside; continue; }
-    if (ch === ',' && !inside) { row.push(cur); cur = ""; continue; }
-    if ((ch === '\n' || ch === '\r') && !inside) {
-      if (cur !== "" || row.length>0) { row.push(cur); rows.push(row); row = []; cur=""; }
+  let row = [], cell = "", insideQuotes = false;
+
+  for(let i=0;i<text.length;i++){
+    const c = text[i], n = text[i+1];
+
+    if(c === '"'){
+      if(insideQuotes && n === '"'){ cell+='"'; i++; }
+      else insideQuotes = !insideQuotes;
       continue;
     }
-    cur += ch;
+
+    if(c === ',' && !insideQuotes){
+      row.push(cell.trim()); cell=""; continue;
+    }
+
+    if((c==='\n'||c==='\r') && !insideQuotes){
+      if(cell || row.length){ row.push(cell.trim()); rows.push(row); }
+      row=[]; cell="";
+      continue;
+    }
+
+    cell+=c;
   }
-  if (cur !== "" || row.length>0) rows.push(row);
+
+  if(cell || row.length){ row.push(cell.trim()); rows.push(row); }
+
   return rows;
 }
 
-// find column indices by header (Hebrew or English)
-function detectCols(header){
-  const h = header.map(c => (c||"").trim().toLowerCase());
-  return {
-    date:    h.indexOf("תאריך")   >=0? h.indexOf("תאריך")   : h.indexOf("date"),
-    title:   h.indexOf("שם ההצגה")>=0? h.indexOf("שם ההצגה") : h.indexOf("title"),
-    time:    h.indexOf("שעה")     >=0? h.indexOf("שעה")     : h.indexOf("time"),
-    place:   h.indexOf("מקום")    >=0? h.indexOf("מקום")    : h.indexOf("place"),
-    note:    h.indexOf("הערה")    >=0? h.indexOf("הערה")    : h.indexOf("note"),
-    constraints: h.indexOf("אילוצים")>=0? h.indexOf("אילוצים") : -1
+
+/* === UTIL === */
+
+function split(text){
+  if(!text) return [];
+  return text.split(/\n|;/).map(t=>t.trim()).filter(Boolean);
+}
+
+
+/* === MAIN === */
+
+let allEvents = [];
+
+async function loadData(){
+
+  const res = await fetch(CSV_URL);
+  const text = await res.text();
+  const rows = parseCSV(text);
+
+  const headers = rows[0];
+  const col = (n) => headers.indexOf(n);
+
+  const i = {
+    date: col("תאריך"),
+    title: col("שם ההצגה"),
+    time: col("שעה"),
+    place: col("מקום"),
+    note: col("הערה"),
+    limits: col("אילוצים"),
+    ex_title: col("ההצגה חוצ"),
+    ex_time: col("שעה חוצ"),
+    ex_place: col("מקום חוצ")
   };
-}
 
-// normalize date strings to YYYY-MM-DD
-function normalizeDate(s){
-  if(!s) return null;
-  s = String(s).trim();
-  if(!s) return null;
-  // already ISO?
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-  // dd.mm(.yyyy) or dd/mm(/yyyy)
-  let parts = null;
-  if (s.includes(".")) parts = s.split(".");
-  else if (s.includes("/")) parts = s.split("/");
-  if (!parts || parts.length < 2) return null;
-  let d = String(Number(parts[0])).padStart(2,"0");
-  let m = String(Number(parts[1])).padStart(2,"0");
-  let y = (parts.length >=3 && parts[2].trim() !== "") ? parts[2].trim() : viewDate.getFullYear();
-  if (y.length === 2) y = "20" + y;
-  return `${y}-${m}-${d}`;
-}
+  allEvents = [];
 
-// load events from CSV
-async function loadEvents(){
-  const resp = await fetch(CSV_URL, {cache:"no-store"});
-  const txt = await resp.text();
-  const rows = parseCSV(txt);
-  if (!rows || rows.length < 2) return [];
-  const cols = detectCols(rows[0]);
-  const events = [];
-  for (let i=1; i<rows.length; i++){
-    const r = rows[i];
-    if (!r[cols.date] || !r[cols.title]) continue;
-    const dt = normalizeDate(r[cols.date]);
-    if (!dt) continue;
-    events.push({
-      date: dt,
-      title: r[cols.title].trim(),
-      time: r[cols.time]  ? r[cols.time].trim()  : "",
-      place:r[cols.place] ? r[cols.place].trim() : "",
-      note: r[cols.note]  ? r[cols.note].trim()  : "",
-      constraints: (cols.constraints>=0 && r[cols.constraints]) ? r[cols.constraints].trim() : ""
-    });
-  }
-  return events;
-}
+  rows.slice(1).forEach(r=>{
+    const date = r[i.date];
+    if(!date) return;
 
-// build calendar for one month
-function buildMonth(year, month, events){
-  const first = new Date(year, month, 1);
-  const startDay = first.getDay(); // 0=Sunday
-  const daysCount = new Date(year, month+1, 0).getDate();
+    const titles = split(r[i.title]);
+    const times  = split(r[i.time]);
+    const places = split(r[i.place]);
+    const notes  = split(r[i.note]);
+    const limits = split(r[i.limits]);
 
-  const cal = document.getElementById("calendar");
-  cal.innerHTML = "";
+    const max = Math.max(titles.length,times.length,places.length,notes.length,limits.length);
 
-  // blanks
-  for (let i=0; i<startDay; i++){
-    cal.appendChild(document.createElement("div"));
-  }
-
-  for (let d=1; d<=daysCount; d++){
-    const dd = String(d).padStart(2,"0");
-    const mm = String(month+1).padStart(2,"0");
-    const yyyy = year;
-    const full = `${yyyy}-${mm}-${dd}`;
-
-    const cell = document.createElement("div");
-    cell.className = "day";
-
-    const hd = document.createElement("h2");
-    hd.textContent = d;
-    cell.appendChild(hd);
-
-    const todays = events.filter(ev => ev.date === full);
-    todays.forEach(ev=>{
-      const evDiv = document.createElement("div");
-      evDiv.className = "event";
-      let html = "";
-      if (ev.time) html += `<span class="ev-time">${ev.time}</span> `;
-      html += `<b>${escapeHtml(ev.title)}</b>`;
-      if (ev.place) html += `<div>${escapeHtml(ev.place)}</div>`;
-      if (ev.note) html += `<div style="opacity:.85;font-size:12px;">${escapeHtml(ev.note)}</div>`;
-      if (ev.constraints) html += `<div style="opacity:.75;font-size:12px;">אילוצים: ${escapeHtml(ev.constraints)}</div>`;
-      evDiv.innerHTML = html;
-      cell.appendChild(evDiv);
-    });
-
-    // highlight today
-    const now = new Date();
-    if (yyyy === now.getFullYear() && month === now.getMonth() && d === now.getDate()){
-      cell.classList.add("today");
+    for(let k=0;k<max;k++){
+      allEvents.push({
+        date,
+        title: titles[k]||"",
+        time: times[k]||"",
+        place: places[k]||"",
+        note: notes[k]||"",
+        limits: limits[k]||""
+      });
     }
 
-    cal.appendChild(cell);
+    const exT = split(r[i.ex_title]);
+    const exTi = split(r[i.ex_time]);
+    const exP = split(r[i.ex_place]);
+    const maxE = Math.max(exT.length,exTi.length,exP.length);
+
+    for(let k=0;k<maxE;k++){
+      if(!exT[k] && !exTi[k] && !exP[k]) continue;
+      allEvents.push({
+        date,
+        title: "⭐ " + (exT[k]||""),
+        time: exTi[k]||"",
+        place: exP[k]||"",
+        note:"",
+        limits:"חוץ"
+      });
+    }
+
+  });
+
+  buildCalendar(new Date());
+}
+
+
+/* === CALENDAR === */
+
+function buildCalendar(date){
+
+  const cal = document.getElementById("calendar");
+  cal.innerHTML="";
+
+  const year = date.getFullYear();
+  const month = date.getMonth();
+
+  document.getElementById("monthLabel").textContent =
+    new Intl.DateTimeFormat('he-IL',{month:'long',year:'numeric'}).format(date);
+
+  const first = new Date(year,month,1);
+  let start = first.getDay();
+  if(start===0) start=7;
+
+  const total = new Date(year,month+1,0).getDate();
+
+  for(let i=1;i<start;i++) cal.appendChild(document.createElement("div"));
+
+  for(let d=1;d<=total;d++){
+    const dayDiv=document.createElement("div");
+    dayDiv.className="day";
+
+    const full = `${year}-${String(month+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const currentDate = new Date(year,month,d);
+
+    dayDiv.innerHTML=`
+      <div class="hebrew-date">${getHebrewDate(currentDate)}</div>
+      <div class="date-number">${d}</div>
+    `;
+
+    const todays = allEvents.filter(e=>e.date===full);
+
+    todays.forEach(e=>{
+      const ev = document.createElement("div");
+      ev.className="event";
+      ev.innerHTML=`
+        <div class="ev-time">${e.time}</div>
+        <b>${e.title}</b>
+        <div>${e.place}</div>
+      `;
+      dayDiv.appendChild(ev);
+    });
+
+    dayDiv.onclick=()=>openModal(currentDate, todays);
+
+    cal.appendChild(dayDiv);
   }
 }
 
-// escape html
-function escapeHtml(s){
-  return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+
+/* === MODAL === */
+
+function openModal(date, events){
+  const modal = document.getElementById("modal");
+  const eventsDiv = document.getElementById("modalEvents");
+
+  document.getElementById("modalDate").textContent =
+   new Intl.DateTimeFormat('he-IL',{weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(date);
+
+  eventsDiv.innerHTML="";
+
+  if(!events.length){
+    eventsDiv.innerHTML="<p>אין אירועים ביום זה</p>";
+  }
+
+  events.forEach(e=>{
+    const div=document.createElement("div");
+    div.innerHTML=`
+      <h3>${e.title}</h3>
+      <p>שעה: ${e.time}</p>
+      <p>מקום: ${e.place}</p>
+      ${e.note?`<p>${e.note}</p>`:""}
+      ${e.limits?`<p>${e.limits}</p>`:""}
+      <hr>
+    `;
+    eventsDiv.appendChild(div);
+  });
+
+  modal.style.display="flex";
 }
 
-// render for current viewDate month
-async function render(){
-  const ev = await loadEvents();
-  const year = viewDate.getFullYear();
-  const month = viewDate.getMonth();
+document.getElementById("closeModal").onclick=()=>modal.style.display="none";
+document.getElementById("modal").onclick=(e)=>{ if(e.target.id==="modal") modal.style.display="none"; }
 
-  // month name in Hebrew + year
-  const monthName = viewDate.toLocaleDateString("he-IL", { month:"long", year:"numeric" });
-  document.getElementById("monthTitle").textContent = monthName;
 
-  buildMonth(year, month, ev);
-}
+/* === START === */
 
-// buttons
-document.getElementById("prevBtn").onclick = () => { viewDate.setMonth(viewDate.getMonth() - 1); render(); };
-document.getElementById("nextBtn").onclick = () => { viewDate.setMonth(viewDate.getMonth() + 1); render(); };
+loadData();
+setInterval(loadData,30000);
 
-// initial
-render();
-setInterval(render, 30000);
 </script>
+
 </body>
 </html>
