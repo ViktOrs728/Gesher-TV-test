@@ -56,10 +56,9 @@ body{
 }
 
 /* ─── строка месяца + кнопки ─── */
-/* теперь выравниваем СЛЕВА экрана */
 .month-bar{
   display:flex;
-  justify-content:flex-start;
+  justify-content:flex-start;   /* слева экрана */
   align-items:center;
   gap:8px;
   margin:12px 0 18px;
@@ -75,7 +74,7 @@ body{
 .btn-small:hover{
   background:#e6e6e6;
 }
-/* сам месяц в "кубике" */
+/* месяц в "кубике" */
 #monthLabel{
   padding:6px 14px;
   border-radius:14px;
@@ -125,7 +124,7 @@ body{
   font-weight:700;
 }
 
-/* события */
+/* блок события в ячейке */
 .event{
   margin-top:6px;
   padding-top:6px;
@@ -137,6 +136,14 @@ body{
   color:#3fb0ff;
   font-weight:700;
   font-size:11px;
+}
+.ev-tag{
+  display:inline-block;
+  font-size:10px;
+  padding:2px 4px;
+  border-radius:6px;
+  background:#ddd;
+  margin-bottom:2px;
 }
 
 /* ─── модальное окно ─── */
@@ -235,8 +242,9 @@ body{
 </div>
 
 <script>
+/* === URL MasterFeed === */
 const CSV_URL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8VHJ7usLuV213YvhCULcjqMrH6M22QQ_cLDtP8f6u0cb7XXKbeBVzEoKRGmigGFm_EQvtN17sQGi2/pub?output=csv";
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vSKX0SzQrQDDG-txSI9I2y7F4-MwWXvjIWh0AlG0qmGOpzQ5hyVXNi1wxdkb3PBRpXHvTvbNN6DWvR3/pub?gid=0&single=true&output=csv";
 
 let cachedEvents = [];
 const today = new Date();
@@ -287,6 +295,12 @@ function parseCSV(text){
 }
 
 /* помощники */
+function esc(s){
+  return String(s||'')
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;');
+}
 function splitMulti(text){
   if(!text && text!==0) return [];
   return String(text).split(/\r?\n|;/).map(s=>s.trim()).filter(Boolean);
@@ -295,121 +309,71 @@ function getWeekLetter(d){
   const arr=['א','ב','ג','ד','ה','ו','ש']; // 0=Sunday=א ... 6=Saturday=ש
   return arr[d.getDay()];
 }
-function esc(s){
-  return String(s||'')
-    .replaceAll('&','&amp;')
-    .replaceAll('<','&lt;')
-    .replaceAll('>','&gt;');
-}
-function parseDate(raw, fallbackYear){
-  raw = String(raw||'').trim();
-  if(!raw) return null;
-  if(/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
-  let parts=null;
-  if(raw.includes('.')) parts=raw.split('.');
-  else if(raw.includes('/')) parts=raw.split('/');
-  else if(/^\d{1,2}$/.test(raw)){
-    const d=String(Number(raw)).padStart(2,'0');
-    const m=String(viewMonth+1).padStart(2,'0');
-    return `${fallbackYear}-${m}-${d}`;
-  } else return null;
 
-  if(parts.length>=2){
-    let d=String(Number(parts[0])).padStart(2,'0');
-    let m=String(Number(parts[1])).padStart(2,'0');
-    let y=parts[2]?parts[2].trim():'';
-    if(!y) y=String(fallbackYear);
-    if(y.length===2) y='20'+y;
-    return `${y}-${m}-${d}`;
-  }
-  return null;
-}
-
-/* загрузка событий */
+/* === загрузка событий из MasterFeed === */
 async function loadEvents(){
   const res = await fetch(CSV_URL,{cache:'no-store'});
   const txt = await res.text();
   const rows = parseCSV(txt);
   if(!rows.length) return [];
 
-  const header = rows[0].map(h=>(h||'').trim().toLowerCase());
-  const col = (...names)=>{
-    for(const n of names){
-      const i = header.indexOf(n.toLowerCase());
-      if(i>=0) return i;
-    }
-    return -1;
-  };
+  const header = rows[0].map(h => (h||'').trim().toLowerCase());
+
+  const idx = (name) => header.indexOf(name.toLowerCase());
 
   const ci = {
-    date: col('תאריך','date'),
-    title: col('שם ההצגה','title'),
-    time: col('שעה','time'),
-    place: col('מקום','place'),
-    note: col('הערה','note'),
-    limits: col('אילוצים','limits'),
-    ext_title: col('ההצגה חוצ'),
-    ext_time: col('שעה חוצ'),
-    ext_place: col('מקום חוצ')
+    dateISO : idx('dateiso'),
+    title   : idx('title'),
+    time    : idx('time'),
+    place   : idx('place'),
+    category: idx('category'),
+    note    : idx('note'),
+    limits  : idx('limits'),
+    day_note: idx('day_note'),
+    actors  : idx('actors'),
+    staff   : idx('staff'),
+    source  : idx('source')
   };
-
-  let foundYear = today.getFullYear();
-  for(let i=1;i<rows.length;i++){
-    const m = String(rows[i][ci.date]||'').match(/\b(\d{4})\b/);
-    if(m){ foundYear = Number(m[1]); break; }
-  }
 
   const events = [];
 
   for(let i=1;i<rows.length;i++){
     const row = rows[i];
-    const rawDate = row[ci.date];
-    if(!rawDate) continue;
-    const iso = parseDate(rawDate,foundYear);
-    if(!iso) continue;
+    const dateISO = row[ci.dateISO];
+    if(!dateISO) continue;
 
-    const titles = splitMulti(row[ci.title]);
-    const times  = splitMulti(row[ci.time]);
-    const places = splitMulti(row[ci.place]);
-    const notes  = splitMulti(row[ci.note]);
-    const limits = splitMulti(row[ci.limits]);
-
-    const max = Math.max(
-      titles.length,times.length,places.length,notes.length,limits.length,1
-    );
-
-    for(let k=0;k<max;k++){
-      events.push({
-        dateISO: iso,
-        title: titles[k]||'',
-        time: times[k]||'',
-        place: places[k]||'',
-        note: notes[k]||'',
-        limits: limits[k]||''
-      });
-    }
-
-    const extT = splitMulti(row[ci.ext_title]);
-    const extTi= splitMulti(row[ci.ext_time]);
-    const extP = splitMulti(row[ci.ext_place]);
-    const maxE = Math.max(extT.length,extTi.length,extP.length);
-    for(let k=0;k<maxE;k++){
-      if(!extT[k] && !extTi[k] && !extP[k]) continue;
-      events.push({
-        dateISO: iso,
-        title: '⭐ '+(extT[k]||''),
-        time: extTi[k]||'',
-        place: extP[k]||'',
-        note:'',
-        limits:'חוץ'
-      });
-    }
+    events.push({
+      dateISO: dateISO,
+      title: row[ci.title] || '',
+      time: row[ci.time] || '',
+      place: row[ci.place] || '',
+      category: row[ci.category] || '',
+      note: row[ci.note] || '',
+      limits: row[ci.limits] || '',
+      day_note: row[ci.day_note] || '',
+      actors: row[ci.actors] || '',
+      staff: row[ci.staff] || '',
+      source: row[ci.source] || ''
+    });
   }
+
+  // сортировка как в masterSort
+  events.sort((a,b)=>{
+    if(a.dateISO < b.dateISO) return -1;
+    if(a.dateISO > b.dateISO) return 1;
+    const ta = a.time || "99:99";
+    const tb = b.time || "99:99";
+    if(ta < tb) return -1;
+    if(ta > tb) return 1;
+    if(a.category < b.category) return -1;
+    if(a.category > b.category) return 1;
+    return 0;
+  });
 
   return events;
 }
 
-/* рендер календаря */
+/* === рендер календаря === */
 function renderCalendar(){
   const cal = document.getElementById('calendar');
   cal.innerHTML='';
@@ -460,15 +424,33 @@ function renderCalendar(){
 
     const todays = cachedEvents.filter(ev=>ev.dateISO===iso);
     todays.sort((a,b)=>{
-      if(!a.time) return 1;
-      if(!b.time) return -1;
-      return a.time.localeCompare(b.time);
+      const ta = a.time || "99:99";
+      const tb = b.time || "99:99";
+      if(ta < tb) return -1;
+      if(ta > tb) return 1;
+      return 0;
     });
 
     todays.forEach(ev=>{
       const evDiv = document.createElement('div');
       evDiv.className='event';
+
+      let tag = '';
+      if(ev.category){
+        let label = '';
+        switch(ev.category){
+          case 'plan_show':          label='הצגה'; break;
+          case 'external_show':      label='חוץ'; break;
+          case 'actor_show':         label='שחקנים'; break;
+          case 'morning_rehearsal':  label='חזרת בוקר'; break;
+          case 'evening_rehearsal':  label='חזרת ערב'; break;
+          default:                   label=ev.category;
+        }
+        tag = `<div class="ev-tag">${esc(label)}</div>`;
+      }
+
       evDiv.innerHTML = `
+        ${tag}
         <div class="ev-time">${esc(ev.time)}</div>
         <b>${esc(ev.title)}</b>
         <div>${esc(ev.place)}</div>
@@ -485,10 +467,12 @@ function renderCalendar(){
   }
 }
 
-/* модалка */
+/* === модалка для дня === */
 function openModal(dateObj, events){
   document.getElementById('modalDate').textContent =
-    new Intl.DateTimeFormat('he-IL',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(dateObj);
+    new Intl.DateTimeFormat('he-IL',{
+      weekday:'long',day:'numeric',month:'long',year:'numeric'
+    }).format(dateObj);
 
   const list = document.getElementById('modalEvents');
   list.innerHTML='';
@@ -499,12 +483,34 @@ function openModal(dateObj, events){
     events.forEach(ev=>{
       const div = document.createElement('div');
       div.style.marginBottom='12px';
+
+      let catLabel = '';
+      switch(ev.category){
+        case 'plan_show':          catLabel='הצגה'; break;
+        case 'external_show':      catLabel='הצגה בחוץ'; break;
+        case 'actor_show':         catLabel='הצגת שחקנים'; break;
+        case 'morning_rehearsal':  catLabel='חזרת בוקר'; break;
+        case 'evening_rehearsal':  catLabel='חזרת ערב'; break;
+        default:                   catLabel=ev.category || '';
+      }
+
+      const dayNote = ev.day_note ? `<p><b>פתק יום:</b> ${esc(ev.day_note)}</p>` : '';
+      const note    = ev.note     ? `<p><b>הערה:</b> ${esc(ev.note)}</p>` : '';
+      const limits  = ev.limits   ? `<p><b>אילוצים:</b> ${esc(ev.limits)}</p>` : '';
+      const actors  = ev.actors   ? `<p><b>שחקנים:</b> ${esc(ev.actors)}</p>` : '';
+      const staff   = ev.staff    ? `<p><b>צוות:</b> ${esc(ev.staff)}</p>` : '';
+
       div.innerHTML = `
         <h3>${esc(ev.title)}</h3>
-        <p>שעה: ${esc(ev.time)}</p>
-        <p>מקום: ${esc(ev.place)}</p>
-        ${ev.note?`<p>הערה: ${esc(ev.note)}</p>`:''}
-        ${ev.limits?`<p>אילוצים: ${esc(ev.limits)}</p>`:''}
+        ${catLabel ? `<p><b>סוג:</b> ${esc(catLabel)}</p>` : ''}
+        <p><b>שעה:</b> ${esc(ev.time)}</p>
+        <p><b>מקום:</b> ${esc(ev.place)}</p>
+        ${dayNote}
+        ${note}
+        ${limits}
+        ${actors}
+        ${staff}
+        <p style="font-size:11px;color:#888;">Source: ${esc(ev.source)}</p>
         <hr>
       `;
       list.appendChild(div);
@@ -519,9 +525,8 @@ modal.onclick = e=>{
   if(e.target.id==='modal') modal.style.display='none';
 };
 
-/* кнопки месяцев */
+/* === кнопки месяцев === */
 nextBtn.onclick = ()=>{
-  // защита: не дальше +2 месяцев
   const maxY = maxForward.getFullYear();
   const maxM = maxForward.getMonth();
   if(viewYear>maxY || (viewYear===maxY && viewMonth>=maxM)) return;
@@ -536,7 +541,7 @@ prevBtn.onclick = ()=>{
   renderCalendar();
 };
 
-/* старт */
+/* === старт === */
 async function start(){
   cachedEvents = await loadEvents();
   renderCalendar();
