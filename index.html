@@ -14,22 +14,35 @@
   --accent:#2563eb;
   --text:#000;
   --muted:#666;
+
+  /* iOS-подобная палитра для категорий */
+  --col-plan:#34c759;      /* зелёный – домашняя הצגה */
+  --col-ext:#ff9500;       /* оранжевый – הצגה חוץ */
+  --col-reh:#ffcc00;       /* жёлтый – חזרה */
+  --col-actor:#af52de;     /* фиолетовый – актёрские штуки */
+  --col-tech:#5ac8fa;      /* голубой – техслужба (на будущее) */
 }
 
-/* базовое */
+/* базовое, без скролла */
 *{box-sizing:border-box}
-body{
+html,body{
+  height:100%;
   margin:0;
+}
+body{
+  display:flex;
+  flex-direction:column;
   padding:18px;
   font-family: Arial, Helvetica, sans-serif;
   background:var(--bg);
   color:var(--text);
+  overflow:hidden; /* страница не скроллится */
 }
 
 /* ─── верхняя строка: театр, год, часы ─── */
 .top-bar{
   display:flex;
-  align-items:flex-start;
+  align-items:center;
   justify-content:space-between;
   gap:12px;
   margin-bottom:6px;
@@ -40,20 +53,14 @@ body{
 }
 #yearLabel{
   font-family:'Playfair Display',serif;
-  font-size:44px;
+  font-size:40px;
   text-align:center;
   flex:1;
 }
-.right-top{
-  display:flex;
-  flex-direction:column;
-  align-items:flex-end;
-  gap:6px;
-}
 #clock{
-  min-width:140px;
-  padding:8px 12px;
-  border-radius:14px;
+  min-width:150px;
+  padding:8px 14px;
+  border-radius:16px;
   background:#f0f0f0;
   border:1px solid #ddd;
   text-align:center;
@@ -63,12 +70,12 @@ body{
 
 /* общая кнопка */
 .btn-small{
-  padding:6px 10px;
-  border-radius:10px;
+  padding:8px 14px;
+  border-radius:14px;
   border:1px solid #bbb;
   background:#fafafa;
   cursor:pointer;
-  font-size:14px;
+  font-size:16px;
 }
 .btn-small:hover{
   background:#e6e6e6;
@@ -80,8 +87,7 @@ body{
   justify-content:space-between;  /* слева – месяцы, справа – טכנאים */
   align-items:center;
   gap:8px;
-  margin:12px 0 18px;
-  margin-left:16px; /* чуть отодвигаем от левого края */
+  margin:10px 0 18px;
 }
 .month-controls{
   display:flex;
@@ -89,111 +95,162 @@ body{
   gap:8px;
 }
 #monthLabel{
-  padding:6px 14px;
-  border-radius:14px;
+  padding:6px 18px;
+  border-radius:16px;
   background:#e0e0e0;
   border:1px solid #c8c8c8;
   font-size:18px;
   font-weight:700;
 }
 #techPageBtn{
-  font-size:18px;        /* как часы */
-  padding:8px 14px;      /* крупнее обычной кнопки */
-  border-radius:14px;
+  font-size:18px;
 }
 
-/* ─── календарь ─── */
+/* ─── календарь занимает всё оставшееся место ─── */
 #calendar{
+  flex:1;
   display:grid;
   grid-template-columns:repeat(7,1fr);
-  gap:10px;
+  gap:12px;
 }
 
-/* ячейка дня */
+/* ячейка дня — крупная для больших экранов */
 .day{
   background:var(--card);
-  border-radius:16px;
-  padding:10px;
-  min-height:140px;
+  border-radius:18px;
+  padding:14px;
+  min-height:180px;
   position:relative;
   overflow:hidden;
   cursor:pointer;
-  transition:0.12s;
+  transition:transform 0.12s, filter 0.3s, opacity 0.3s;
 }
 .day:hover{
   transform:translateY(-2px);
+}
+
+/* прошедшие дни — приглушены */
+.day.past{
+  opacity:0.55;
+}
+
+/* туман: >60 дней вперёд */
+.day.fog1{
+  filter:blur(2px) grayscale(0.3);
+  opacity:0.5;
+  cursor:default;
+}
+.day.fog2{
+  filter:blur(4px) grayscale(0.6);
+  opacity:0.3;
+  cursor:default;
 }
 
 /* буква дня недели в углу */
 .week-letter{
   position:absolute;
   top:6px;
-  left:8px;
+  left:10px;
   font-weight:700;
   opacity:.9;
   font-size:13px;
 }
 .sabbath{ color:#d33; }
 
-/* число дня — поднято ближе к верху */
+/* число дня — максимально наверх, под буквой */
 .date-number{
-  margin-top:16px;
-  font-size:22px;
+  margin-top:18px;
+  font-size:24px;
   font-weight:700;
 }
 
-/* горизонтальная полоска под датой — ЕСТЬ ВСЕГДА */
+/* горизонтальная линия под числом — не до краёв, чуть растворяется */
 .day-separator{
-  margin-top:4px;
-  border-top:1px solid #d6d6d6;
+  margin-top:6px;
+  height:1px;
+  background:linear-gradient(
+    to left,
+    transparent 0%,
+    #d6d6d6 20%,
+    #d6d6d6 80%,
+    transparent 100%
+  );
 }
 
-/* блок события в ячейке (только спектакли + плашка חזרה) */
+/* блок события в ячейке (desktop) */
 .event{
-  margin-top:4px;
-  font-size:12px;
+  margin-top:6px;
+  font-size:14px;
   line-height:1.2;
 }
+
+/* цветные теги категорий */
 .ev-tag{
   display:inline-block;
-  font-size:10px;
-  padding:2px 4px;
-  border-radius:6px;
-  background:#ddd;
+  font-size:11px;
+  padding:3px 7px;
+  border-radius:999px;
   margin-bottom:2px;
+  color:#fff;
 }
-.rehearsal-badge .ev-tag{
-  background:#ffe0b2;
+.ev-tag-plan{  background:var(--col-plan); }
+.ev-tag-ext{   background:var(--col-ext); }
+.ev-tag-reh{   background:var(--col-reh); }
+.ev-tag-actor{ background:var(--col-actor); }
+.ev-tag-tech{  background:var(--col-tech); }
+
+/* фон карточек в оттенке той же категории (5% яркости) */
+.cat-plan{
+  background:rgba(52,199,89,0.06);
+  border:1px solid rgba(52,199,89,0.25);
+}
+.cat-ext{
+  background:rgba(255,149,0,0.06);
+  border:1px solid rgba(255,149,0,0.25);
+}
+.cat-reh{
+  background:rgba(255,204,0,0.06);
+  border:1px solid rgba(255,204,0,0.25);
+}
+.cat-actor{
+  background:rgba(175,82,222,0.06);
+  border:1px solid rgba(175,82,222,0.25);
 }
 
-/* строка спектакля (desktop) */
+/* обёртка для карточек спектаклей (desktop) */
+.event-card{
+  border-radius:14px;
+  padding:6px 8px;
+  margin-top:4px;
+}
+
+/* строка спектакля (desktop): название/место + столбик времени */
 .event-show{
   display:flex;
   align-items:flex-start;
-  gap:4px;
+  gap:6px;
 }
 .ev-title-block{
   flex:1;
 }
 .ev-title-block b{
   display:block;
+  font-size:14px;
 }
 .ev-place{
   font-size:11px;
   color:var(--muted);
 }
 
-/* варианты времени:
-   - .ev-times-side: столбик слева (desktop)
-   - .ev-times-line: строка под названием (mobile) */
+/* время: desktop – столбик, mobile – строка */
 .ev-times-side{
   display:flex;
   flex-direction:column;
   gap:2px;
   direction:ltr;
-  font-size:11px;
+  font-size:12px;
   font-weight:700;
-  color:#3fb0ff;
+  color:#007aff;
 }
 .ev-times-side span{
   white-space:nowrap;
@@ -204,7 +261,12 @@ body{
   direction:ltr;
   font-size:11px;
   font-weight:700;
-  color:#3fb0ff;
+  color:#007aff;
+}
+
+/* плашка "חזרה" в календаре */
+.rehearsal-badge{
+  margin-top:6px;
 }
 
 /* ─── модальное окно ─── */
@@ -236,40 +298,52 @@ body{
   cursor:pointer;
 }
 
-/* дневной вид модалки */
-#dayView h2,
-#actorsView h2,
-#techView h2{
-  margin-top:0;
+/* дата в модалке – по центру, аккуратнее */
+#modalDate,
+#actorsDate,
+#techDate{
+  margin-top:6px;
+  margin-bottom:8px;
+  text-align:center;
+  font-family:'Playfair Display',serif;
+  font-size:22px;
 }
 #modalDayNote{
   margin-bottom:10px;
   font-weight:600;
+  text-align:center;
 }
+
+/* карточки спектаклей в модалке */
 .modal-show-block{
   margin-bottom:12px;
+  border-radius:14px;
+  padding:8px 10px;
 }
 .modal-show-block h3{
   margin:4px 0;
 }
 .modal-show-type{
   font-weight:bold;
+  margin-bottom:2px;
 }
 .modal-show-times{
   margin-top:2px;
   direction:ltr;
   font-weight:700;
-  color:#3fb0ff;
+  color:#007aff;
 }
+
+/* блок хзрот в модалке */
 #modalRehearsals{
-  margin-top:8px;
+  margin-top:10px;
   font-size:13px;
 }
 .rehearsal-row{
   margin-top:6px;
   margin-bottom:6px;
-  border-top:1px solid #eee;
-  padding-top:6px;
+  border-radius:12px;
+  padding:6px 8px;
 }
 .rehearsal-cols{
   display:flex;
@@ -289,14 +363,18 @@ body{
   color:#aaa;
 }
 
+/* блок אילוצים */
 #modalLimits{
   margin-top:10px;
   font-size:13px;
 }
+
+/* кнопки внизу модалки */
 #dayViewButtons{
   margin-top:14px;
   display:flex;
   gap:8px;
+  justify-content:flex-start;
 }
 
 /* актёрский и тех-вид */
@@ -304,29 +382,32 @@ body{
   margin-bottom:10px;
   display:flex;
   gap:8px;
+  justify-content:center;
 }
 .view-nav .btn-small{
-  font-size:13px;
+  font-size:14px;
 }
 #actorsContent,
 #techContent{
   font-size:13px;
 }
 
-/* ─── адаптация для телефона, НО 7 колонок сохраняем ─── */
+/* ─── MOBILE: только цветные заголовки внутри дня ─── */
 @media(max-width:900px){
+  body{
+    padding:10px;
+  }
   #calendar{
-    grid-template-columns:repeat(7,1fr);
     gap:4px;
   }
   .day{
-    min-height:90px;
+    min-height:80px;
     padding:6px;
   }
   .week-letter{
     font-size:11px;
     top:4px;
-    left:4px;
+    left:6px;
   }
   .date-number{
     margin-top:14px;
@@ -337,19 +418,26 @@ body{
     margin-top:3px;
   }
 
-  /* мобильная логика:
-     - плашка הצגה
-     - под ней название
-     - под названием время (строкой)
-     - место не показываем внутри ячейки */
-  .ev-place{
-    display:none;
+  /* в ячейке дня для телефона:
+     - только цветные плашки категорий
+     - название, место и времена НЕ показываем */
+  .event-card{
+    border:none;
+    background:transparent;
+    padding:0;
+    margin-top:3px;
+  }
+  .event-show{
+    display:block;
+  }
+  .ev-title-block{
+    display:none; /* скрываем название и место в самой ячейке */
   }
   .ev-times-side{
     display:none;
   }
   .ev-times-line{
-    display:block;
+    display:none;
   }
 
   #yearLabel{
@@ -375,9 +463,7 @@ body{
 <div class="top-bar">
   <div id="theatreName">תיאטרון גשר</div>
   <div id="yearLabel"></div>
-  <div class="right-top">
-    <div id="clock">--:--:--</div>
-  </div>
+  <div id="clock">--:--:--</div>
 </div>
 
 <!-- СЛЕВА: [кнопки месяцев]  СПРАВА: [טכנאים] -->
@@ -439,12 +525,15 @@ const CSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vSKX0SzQrQDDG-txSI9I2y7F4-MwWXvjIWh0AlG0qmGOpzQ5hyVXNi1wxdkb3PBRpXHvTvbNN6DWvR3/pub?gid=0&single=true&output=csv";
 
 let cachedEvents = [];
-const today = new Date();
-let viewYear = today.getFullYear();
-let viewMonth = today.getMonth();
+const todayLocal = new Date();
+const todayTA = new Date(todayLocal.toLocaleString('en-US',{timeZone:'Asia/Jerusalem'}));
+todayTA.setHours(0,0,0,0);
 
-// максимум на 2 месяца вперёд
-const maxForward = new Date(today.getFullYear(), today.getMonth() + 2, 1);
+let viewYear = todayTA.getFullYear();
+let viewMonth = todayTA.getMonth();
+
+// максимум на 2 месяца вперёд по месяцам
+const maxForward = new Date(todayTA.getFullYear(), todayTA.getMonth() + 2, 1);
 
 const nextBtn     = document.getElementById('nextBtn');
 const prevBtn     = document.getElementById('prevBtn');
@@ -628,7 +717,7 @@ function renderCalendar(){
     new Intl.DateTimeFormat('he-IL',{month:'long'}).format(new Date(viewYear,viewMonth,1));
 
   // prev: только если не текущий месяц
-  if(viewYear===today.getFullYear() && viewMonth===today.getMonth())
+  if(viewYear===todayTA.getFullYear() && viewMonth===todayTA.getMonth())
     prevBtn.style.visibility='hidden';
   else
     prevBtn.style.visibility='visible';
@@ -645,6 +734,8 @@ function renderCalendar(){
   let start = first.getDay();   // 0=Sunday
   const total = new Date(viewYear,viewMonth+1,0).getDate();
 
+  const isMobile = window.matchMedia('(max-width: 900px)').matches;
+
   for(let i=0;i<start;i++){
     cal.appendChild(document.createElement('div'));
   }
@@ -655,6 +746,24 @@ function renderCalendar(){
 
     const iso = `${viewYear}-${String(viewMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const dt  = new Date(viewYear,viewMonth,d);
+    dt.setHours(0,0,0,0);
+
+    // past / future
+    const diffMs = dt - todayTA;
+    const diffDays = Math.round(diffMs / (1000*60*60*24));
+
+    if(diffDays < 0){
+      cell.classList.add('past');
+    }
+
+    if(diffDays > 60){
+      // туман и некликабельно
+      if(diffDays === 61){
+        cell.classList.add('fog1');
+      } else {
+        cell.classList.add('fog2');
+      }
+    }
 
     const letter = getWeekLetter(dt);
     const wl = document.createElement('div');
@@ -675,47 +784,86 @@ function renderCalendar(){
     const todays = cachedEvents.filter(ev=>ev.dateISO===iso);
     const showGroups = buildShowGroups(todays);
 
-    // спектакли
-    showGroups.forEach(g=>{
-      const evDiv = document.createElement('div');
-      evDiv.className='event';
-
-      let tagLabel = (g.category === 'external_show') ? 'הצגה חוץ' : 'הצגה';
-
-      const timesSideHTML = g.times.map(t=>`<span>${esc(t)}</span>`).join('');
-      const timesLineText = g.times.join(" , ");
-
-      evDiv.innerHTML = `
-        <div class="ev-tag">${esc(tagLabel)}</div>
-        <div class="event-show">
-          <div class="ev-title-block">
-            <b>${esc(g.title)}</b>
-            <div class="ev-place">${esc(g.place)}</div>
-            <div class="ev-times-line">${esc(timesLineText)}</div>
-          </div>
-          <div class="ev-times-side">${timesSideHTML}</div>
-        </div>
-      `;
-      cell.appendChild(evDiv);
-    });
-
-    // плашка "חזרה", если есть репетиции
     const hasRehearsal = todays.some(ev =>
       ev.category === 'morning_rehearsal' ||
       ev.category === 'evening_rehearsal'
     );
-    if(hasRehearsal){
-      const rehDiv = document.createElement('div');
-      rehDiv.className = 'event rehearsal-badge';
-      rehDiv.innerHTML = `<div class="ev-tag">חזרה</div>`;
-      cell.appendChild(rehDiv);
+
+    // DESKTOP / ТВ: подробная карточка
+    // MOBILE: только плашки категорий
+    if(isMobile){
+      // спектакли – только плашки
+      let hasPlan = showGroups.some(g=>g.category==='plan_show');
+      let hasExt  = showGroups.some(g=>g.category==='external_show');
+
+      if(hasPlan){
+        const evDiv = document.createElement('div');
+        evDiv.className='event';
+        evDiv.innerHTML = `<span class="ev-tag ev-tag-plan">הצגה</span>`;
+        cell.appendChild(evDiv);
+      }
+      if(hasExt){
+        const evDiv = document.createElement('div');
+        evDiv.className='event';
+        evDiv.innerHTML = `<span class="ev-tag ev-tag-ext">הצגה חוץ</span>`;
+        cell.appendChild(evDiv);
+      }
+      if(hasRehearsal){
+        const rehDiv = document.createElement('div');
+        rehDiv.className = 'event';
+        rehDiv.innerHTML = `<span class="ev-tag ev-tag-reh">חזרה</span>`;
+        cell.appendChild(rehDiv);
+      }
+    } else {
+      // Полный вид для больших экранов
+      showGroups.forEach(g=>{
+        const evDiv = document.createElement('div');
+        evDiv.className='event';
+
+        let tagLabel = (g.category === 'external_show') ? 'הצגה חוץ' : 'הצגה';
+        let tagClass = (g.category === 'external_show') ? 'ev-tag-ext' : 'ev-tag-plan';
+        let boxClass = (g.category === 'external_show') ? 'cat-ext' : 'cat-plan';
+
+        const timesSideHTML = g.times.map(t=>`<span>${esc(t)}</span>`).join('');
+        const timesLineText = g.times.join(" , ");
+
+        evDiv.innerHTML = `
+          <div class="event-card ${boxClass}">
+            <div class="ev-tag ${tagClass}">${esc(tagLabel)}</div>
+            <div class="event-show">
+              <div class="ev-title-block">
+                <b>${esc(g.title)}</b>
+                <div class="ev-place">${esc(g.place)}</div>
+                <div class="ev-times-line">${esc(timesLineText)}</div>
+              </div>
+              <div class="ev-times-side">${timesSideHTML}</div>
+            </div>
+          </div>
+        `;
+        cell.appendChild(evDiv);
+      });
+
+      if(hasRehearsal){
+        const rehDiv = document.createElement('div');
+        rehDiv.className = 'event rehearsal-badge';
+        rehDiv.innerHTML = `
+          <div class="event-card cat-reh">
+            <span class="ev-tag ev-tag-reh">חזרה</span>
+          </div>`;
+        cell.appendChild(rehDiv);
+      }
     }
 
-    if(viewYear===today.getFullYear() && viewMonth===today.getMonth() && d===today.getDate()){
+    // подсветка сегодняшнего дня
+    if(dt.getTime() === todayTA.getTime()){
       cell.style.outline = '3px solid var(--accent)';
     }
 
-    cell.addEventListener('click', ()=>openModal(dt,todays));
+    // клики: только если diffDays <= 60 (не в тумане)
+    if(diffDays <= 60){
+      cell.addEventListener('click', ()=>openModal(dt,todays));
+    }
+
     cal.appendChild(cell);
   }
 }
@@ -750,18 +898,19 @@ function openModal(dateObj, events){
   } else {
     showGroups.forEach(g=>{
       const div = document.createElement('div');
-      div.className = 'modal-show-block';
-
       let catLabel = (g.category === 'external_show') ? 'הצגה חוץ' : 'הצגה';
+      let catBoxClass = (g.category === 'external_show') ? 'cat-ext' : 'cat-plan';
+      let catTagClass = (g.category === 'external_show') ? 'ev-tag-ext' : 'ev-tag-plan';
+
       const times = g.times.join(" , ");
 
+      div.className = `modal-show-block ${catBoxClass}`;
       div.innerHTML = `
-        <p class="modal-show-type">${esc(catLabel)}</p>
+        <span class="ev-tag ${catTagClass}">${esc(catLabel)}</span>
         <h3>${esc(g.title)}</h3>
         <p class="modal-show-times">${esc(times)}</p>
         <p><b>מקום:</b> ${esc(g.place)}</p>
         ${g.note ? `<p><b>הערה:</b> ${esc(g.note)}</p>` : ""}
-        <hr>
       `;
       modalEventsEl.appendChild(div);
     });
@@ -803,7 +952,7 @@ function openModal(dateObj, events){
   });
 }
 
-/* блок хоровод с "חזרות" в дневном виде */
+/* блок "חזרות" в дневном виде */
 function buildRehearsalsView(events){
   const rehe = events.filter(ev =>
     ev.category === 'morning_rehearsal' ||
@@ -830,7 +979,7 @@ function buildRehearsalsView(events){
 
   let html = "<h3>חזרות</h3>";
   groups.forEach(g=>{
-    html += `<div class="rehearsal-row">`;
+    html += `<div class="rehearsal-row cat-reh">`;
     if(g.title){
       html += `<p><b>${esc(g.title)}</b></p>`;
     }
@@ -888,6 +1037,7 @@ function buildActorsViewContent(events){
     }
     const block = document.createElement('div');
     block.style.marginBottom = '10px';
+    block.className = 'modal-show-block cat-actor';
     block.innerHTML = `
       <p><b>${esc(label)}</b></p>
       <p><b>שעה:</b> ${esc(ev.time)}</p>
@@ -896,7 +1046,6 @@ function buildActorsViewContent(events){
       ${ev.actors ? `<p><b>שחקנים:</b> ${esc(ev.actors)}</p>` : ""}
       ${ev.note   ? `<p><b>הערה:</b> ${esc(ev.note)}</p>` : ""}
       ${ev.limits ? `<p><b>אילוצים:</b> ${esc(ev.limits)}</p>` : ""}
-      <hr>
     `;
     actorsContent.appendChild(block);
   });
@@ -910,11 +1059,11 @@ function buildTechViewContent(events){
 /* переключение видов в модалке */
 openActorsBtn.onclick = ()=>{
   if(!currentDayDate) return;
+  dayView.style.display    = 'block'; // сначала, чтобы высота считалась от базового
   dayView.style.display    = 'none';
   techView.style.display   = 'none';
   actorsView.style.display = 'block';
 };
-
 openTechBtn.onclick = ()=>{
   if(!currentDayDate) return;
   dayView.style.display    = 'none';
@@ -976,6 +1125,9 @@ async function start(){
 }
 start();
 setInterval(start,30000);
+
+/* перерендер при изменении ширины (для mobile/desktop вида) */
+window.addEventListener('resize', renderCalendar);
 </script>
 </body>
 </html>
