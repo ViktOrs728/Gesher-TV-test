@@ -26,7 +26,7 @@ body{
   color:var(--text);
 }
 
-/* ─── верхняя строка: театр, год, часы ─── */
+/* ─── верхняя строка: театр, год, часы + кнопка техников ─── */
 .top-bar{
   display:flex;
   align-items:flex-start;
@@ -39,10 +39,16 @@ body{
   font-size:20px;
 }
 #yearLabel{
-  font-family:'Playfair Display',serif;
+  font-family:'Playfair+Display', 'Playfair Display',serif;
   font-size:44px;
   text-align:center;
   flex:1;
+}
+.right-top{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:6px;
 }
 #clock{
   min-width:140px;
@@ -53,15 +59,6 @@ body{
   text-align:center;
   font-weight:600;
   font-size:18px;
-}
-
-/* ─── строка месяца + кнопки ─── */
-.month-bar{
-  display:flex;
-  justify-content:flex-start;   /* слева экрана */
-  align-items:center;
-  gap:8px;
-  margin:12px 0 18px;
 }
 .btn-small{
   padding:6px 10px;
@@ -74,7 +71,15 @@ body{
 .btn-small:hover{
   background:#e6e6e6;
 }
-/* месяц в "кубике" */
+
+/* ─── строка месяца + кнопки ─── */
+.month-bar{
+  display:flex;
+  justify-content:flex-start;   /* слева экрана */
+  align-items:center;
+  gap:8px;
+  margin:12px 0 18px;
+}
 #monthLabel{
   padding:6px 14px;
   border-radius:14px;
@@ -124,18 +129,13 @@ body{
   font-weight:700;
 }
 
-/* блок события в ячейке */
+/* блок события в ячейке (только спектакли) */
 .event{
   margin-top:6px;
   padding-top:6px;
   border-top:1px solid #e3e3e3;
   font-size:12px;
   line-height:1.2;
-}
-.ev-time{
-  color:#3fb0ff;
-  font-weight:700;
-  font-size:11px;
 }
 .ev-tag{
   display:inline-block;
@@ -144,6 +144,24 @@ body{
   border-radius:6px;
   background:#ddd;
   margin-bottom:2px;
+}
+
+/* строка: несколько времён + название + место */
+.event-show{
+  display:flex;
+  align-items:center;
+  gap:4px;
+}
+.ev-times{
+  display:flex;
+  gap:4px;
+  direction:ltr;  /* чтобы времена шли как 17:00 20:00 */
+  font-size:11px;
+  font-weight:700;
+  color:#3fb0ff;
+}
+.ev-title-block b{
+  display:block;
 }
 
 /* ─── модальное окно ─── */
@@ -174,6 +192,50 @@ body{
   font-size:22px;
   cursor:pointer;
 }
+#modalDate{
+  margin-top:0;
+}
+#modalDayNote{
+  margin-bottom:10px;
+  font-weight:600;
+}
+
+/* список спектаклей в модалке */
+.modal-show-block{
+  margin-bottom:12px;
+}
+.modal-show-block h3{
+  margin:4px 0;
+}
+.modal-show-times{
+  direction:ltr;
+  font-weight:700;
+  color:#3fb0ff;
+}
+
+/* вкладки снизу: שחקנים / טכנאים */
+#modalTabs{
+  margin-top:18px;
+  display:flex;
+  gap:8px;
+}
+.tab-btn{
+  padding:6px 10px;
+  border-radius:10px;
+  border:1px solid #bbb;
+  background:#f5f5f5;
+  cursor:pointer;
+  font-size:13px;
+}
+.tab-btn.active{
+  background:#ddd;
+}
+.tab-panel{
+  margin-top:10px;
+  border-top:1px solid #eee;
+  padding-top:8px;
+  font-size:13px;
+}
 
 /* ─── адаптация для телефона, НО 7 колонок сохраняем ─── */
 @media(max-width:900px){
@@ -198,8 +260,8 @@ body{
     font-size:9px;
     padding-top:4px;
   }
-  .ev-time{
-    font-size:9px;
+  .ev-times{
+    font-size:8px;
   }
   #yearLabel{
     font-size:28px;
@@ -220,14 +282,17 @@ body{
 <div class="top-bar">
   <div id="theatreName">תיאטרון גשר</div>
   <div id="yearLabel"></div>
-  <div id="clock">--:--:--</div>
+  <div class="right-top">
+    <div id="clock">--:--:--</div>
+    <button id="techPageBtn" class="btn-small">טכנאים</button>
+  </div>
 </div>
 
-<!-- СЛЕВА: [חודש קודם ▶️] [МЕСЯЦ] [חודש הבא ◀️] -->
+<!-- СЛЕВА: [חודש קודם] [МЕСЯЦ В КУБИКЕ] [חודש הבא] -->
 <div class="month-bar">
-  <button id="prevBtn" class="btn-small" style="visibility:hidden">חודש קודם ▶️</button>
+  <button id="prevBtn" class="btn-small" style="visibility:hidden">חודש קודם</button>
   <div id="monthLabel">—</div>
-  <button id="nextBtn" class="btn-small">חודש הבא ◀️</button>
+  <button id="nextBtn" class="btn-small">חודש הבא</button>
 </div>
 
 <div id="calendar"></div>
@@ -237,7 +302,15 @@ body{
   <div id="modalContent">
     <div id="closeModal">✕</div>
     <h2 id="modalDate"></h2>
+    <div id="modalDayNote"></div>
     <div id="modalEvents"></div>
+
+    <div id="modalTabs">
+      <button id="actorsTab" class="tab-btn">שחקנים</button>
+      <button id="techTab" class="tab-btn">טכנאים</button>
+    </div>
+    <div id="actorsPanel" class="tab-panel" style="display:none;"></div>
+    <div id="techPanel"   class="tab-panel" style="display:none;"></div>
   </div>
 </div>
 
@@ -254,10 +327,15 @@ let viewMonth = today.getMonth();
 // максимум на 2 месяца вперёд
 const maxForward = new Date(today.getFullYear(), today.getMonth() + 2, 1);
 
-const nextBtn = document.getElementById('nextBtn');
-const prevBtn = document.getElementById('prevBtn');
-const modal = document.getElementById('modal');
-const closeModal = document.getElementById('closeModal');
+const nextBtn     = document.getElementById('nextBtn');
+const prevBtn     = document.getElementById('prevBtn');
+const modal       = document.getElementById('modal');
+const closeModal  = document.getElementById('closeModal');
+const actorsTab   = document.getElementById('actorsTab');
+const techTab     = document.getElementById('techTab');
+const actorsPanel = document.getElementById('actorsPanel');
+const techPanel   = document.getElementById('techPanel');
+const techPageBtn = document.getElementById('techPageBtn');
 
 /* === часы === */
 function updateClock(){
@@ -270,6 +348,11 @@ function updateClock(){
 }
 setInterval(updateClock,1000);
 updateClock();
+
+/* кнопка "טכנאים" в шапке — пока заглушка */
+techPageBtn.onclick = () => {
+  alert("דף טכנאים יתווסף בהמשך.");
+};
 
 /* === парсер csv === */
 function parseCSV(text){
@@ -301,13 +384,36 @@ function esc(s){
     .replaceAll('<','&lt;')
     .replaceAll('>','&gt;');
 }
-function splitMulti(text){
-  if(!text && text!==0) return [];
-  return String(text).split(/\r?\n|;/).map(s=>s.trim()).filter(Boolean);
-}
 function getWeekLetter(d){
   const arr=['א','ב','ג','ד','ה','ו','ש']; // 0=Sunday=א ... 6=Saturday=ש
   return arr[d.getDay()];
+}
+
+/* группировка спектаклей по (category, title, place) + времена */
+function buildShowGroups(events){
+  const map = {};
+  for(const ev of events){
+    if(ev.category!=='plan_show' && ev.category!=='external_show') continue;
+    const key = ev.category + '|' + (ev.title||'') + '|' + (ev.place||'');
+    if(!map[key]){
+      map[key] = {
+        category: ev.category,
+        title: ev.title || '',
+        place: ev.place || '',
+        times: [],
+        note: ev.note || '',
+        limits: ev.limits || ''
+      };
+    }
+    if(ev.time && !map[key].times.includes(ev.time)){
+      map[key].times.push(ev.time);
+    }
+  }
+  let groups = Object.values(map);
+  groups.forEach(g => g.times.sort());
+  const domestic = groups.filter(g=>g.category==='plan_show');
+  const external = groups.filter(g=>g.category==='external_show');
+  return domestic.concat(external);
 }
 
 /* === загрузка событий из MasterFeed === */
@@ -318,7 +424,6 @@ async function loadEvents(){
   if(!rows.length) return [];
 
   const header = rows[0].map(h => (h||'').trim().toLowerCase());
-
   const idx = (name) => header.indexOf(name.toLowerCase());
 
   const ci = {
@@ -336,23 +441,21 @@ async function loadEvents(){
   };
 
   const events = [];
-
   for(let i=1;i<rows.length;i++){
     const row = rows[i];
     const dateISO = row[ci.dateISO];
     if(!dateISO) continue;
-
     events.push({
       dateISO: dateISO,
-      title: row[ci.title] || '',
-      time: row[ci.time] || '',
-      place: row[ci.place] || '',
+      title: row[ci.title]   || '',
+      time:  row[ci.time]    || '',
+      place: row[ci.place]   || '',
       category: row[ci.category] || '',
-      note: row[ci.note] || '',
-      limits: row[ci.limits] || '',
+      note:  row[ci.note]    || '',
+      limits:row[ci.limits]  || '',
       day_note: row[ci.day_note] || '',
       actors: row[ci.actors] || '',
-      staff: row[ci.staff] || '',
+      staff:  row[ci.staff]  || '',
       source: row[ci.source] || ''
     });
   }
@@ -423,37 +526,27 @@ function renderCalendar(){
     cell.appendChild(dn);
 
     const todays = cachedEvents.filter(ev=>ev.dateISO===iso);
-    todays.sort((a,b)=>{
-      const ta = a.time || "99:99";
-      const tb = b.time || "99:99";
-      if(ta < tb) return -1;
-      if(ta > tb) return 1;
-      return 0;
-    });
 
-    todays.forEach(ev=>{
+    // показываем ТОЛЬКО спектакли (plan_show / external_show), сгруппованные
+    const showGroups = buildShowGroups(todays);
+
+    showGroups.forEach(g=>{
       const evDiv = document.createElement('div');
       evDiv.className='event';
 
-      let tag = '';
-      if(ev.category){
-        let label = '';
-        switch(ev.category){
-          case 'plan_show':          label='הצגה'; break;
-          case 'external_show':      label='חוץ'; break;
-          case 'actor_show':         label='שחקנים'; break;
-          case 'morning_rehearsal':  label='חזרת בוקר'; break;
-          case 'evening_rehearsal':  label='חזרת ערב'; break;
-          default:                   label=ev.category;
-        }
-        tag = `<div class="ev-tag">${esc(label)}</div>`;
-      }
+      let tagLabel = (g.category === 'external_show') ? 'הצגה חוץ' : 'הצגה';
+
+      const timesHTML = g.times.map(t=>`<span>${esc(t)}</span>`).join(' ');
 
       evDiv.innerHTML = `
-        ${tag}
-        <div class="ev-time">${esc(ev.time)}</div>
-        <b>${esc(ev.title)}</b>
-        <div>${esc(ev.place)}</div>
+        <div class="ev-tag">${esc(tagLabel)}</div>
+        <div class="event-show">
+          <div class="ev-times">${timesHTML}</div>
+          <div class="ev-title-block">
+            <b>${esc(g.title)}</b>
+            <div>${esc(g.place)}</div>
+          </div>
+        </div>
       `;
       cell.appendChild(evDiv);
     });
@@ -474,51 +567,112 @@ function openModal(dateObj, events){
       weekday:'long',day:'numeric',month:'long',year:'numeric'
     }).format(dateObj);
 
-  const list = document.getElementById('modalEvents');
-  list.innerHTML='';
+  const modalDayNoteEl = document.getElementById('modalDayNote');
+  const modalEventsEl  = document.getElementById('modalEvents');
 
-  if(!events.length){
-    list.innerHTML='<p>אין אירועים ביום זה</p>';
+  // общий "פתק יום" — показываем один раз
+  const dayNote = (events.find(ev=>ev.day_note) || {}).day_note || "";
+  modalDayNoteEl.innerHTML = dayNote ? `<span>פתק יום: ${esc(dayNote)}</span>` : "";
+
+  // основной блок: только спектакли (дом и חוץ)
+  modalEventsEl.innerHTML = "";
+  const showGroups = buildShowGroups(events);
+
+  if(!showGroups.length){
+    modalEventsEl.innerHTML = "<p>אין הצגות ביום זה</p>";
   } else {
-    events.forEach(ev=>{
+    showGroups.forEach(g=>{
       const div = document.createElement('div');
-      div.style.marginBottom='12px';
+      div.className = 'modal-show-block';
 
-      let catLabel = '';
-      switch(ev.category){
-        case 'plan_show':          catLabel='הצגה'; break;
-        case 'external_show':      catLabel='הצגה בחוץ'; break;
-        case 'actor_show':         catLabel='הצגת שחקנים'; break;
-        case 'morning_rehearsal':  catLabel='חזרת בוקר'; break;
-        case 'evening_rehearsal':  catLabel='חזרת ערב'; break;
-        default:                   catLabel=ev.category || '';
-      }
-
-      const dayNote = ev.day_note ? `<p><b>פתק יום:</b> ${esc(ev.day_note)}</p>` : '';
-      const note    = ev.note     ? `<p><b>הערה:</b> ${esc(ev.note)}</p>` : '';
-      const limits  = ev.limits   ? `<p><b>אילוצים:</b> ${esc(ev.limits)}</p>` : '';
-      const actors  = ev.actors   ? `<p><b>שחקנים:</b> ${esc(ev.actors)}</p>` : '';
-      const staff   = ev.staff    ? `<p><b>צוות:</b> ${esc(ev.staff)}</p>` : '';
+      let catLabel = (g.category === 'external_show') ? 'הצגה חוץ' : 'הצגה';
+      const times = g.times.join(" , ");
 
       div.innerHTML = `
-        <h3>${esc(ev.title)}</h3>
-        ${catLabel ? `<p><b>סוג:</b> ${esc(catLabel)}</p>` : ''}
-        <p><b>שעה:</b> ${esc(ev.time)}</p>
-        <p><b>מקום:</b> ${esc(ev.place)}</p>
-        ${dayNote}
-        ${note}
-        ${limits}
-        ${actors}
-        ${staff}
-        <p style="font-size:11px;color:#888;">Source: ${esc(ev.source)}</p>
+        <h3>${esc(g.title)}</h3>
+        <p><b>${esc(catLabel)}</b></p>
+        <p><span class="modal-show-times">${esc(times)}</span></p>
+        <p><b>מקום:</b> ${esc(g.place)}</p>
+        ${g.note   ? `<p><b>הערה:</b> ${esc(g.note)}</p>`   : ""}
+        ${g.limits ? `<p><b>אילוצים:</b> ${esc(g.limits)}</p>` : ""}
         <hr>
       `;
-      list.appendChild(div);
+      modalEventsEl.appendChild(div);
     });
   }
 
+  // блок "שחקנים" — репетиции и актёрские события
+  const actorEvents = events.filter(ev =>
+    ev.category === 'actor_show' ||
+    ev.category === 'morning_rehearsal' ||
+    ev.category === 'evening_rehearsal'
+  );
+
+  if(!actorEvents.length){
+    actorsPanel.innerHTML = "<p>אין נתונים לשחקנים ליום זה.</p>";
+  } else {
+    actorsPanel.innerHTML = "";
+    actorEvents.forEach(ev=>{
+      let label="";
+      switch(ev.category){
+        case 'actor_show':         label='הצגת שחקנים'; break;
+        case 'morning_rehearsal':  label='חזרת בוקר';   break;
+        case 'evening_rehearsal':  label='חזרת ערב';    break;
+        default:                   label=ev.category;
+      }
+      const block = document.createElement('div');
+      block.style.marginBottom = '10px';
+      block.innerHTML = `
+        <p><b>${esc(label)}</b></p>
+        <p><b>שעה:</b> ${esc(ev.time)}</p>
+        <p><b>מקום:</b> ${esc(ev.place)}</p>
+        ${ev.title ? `<p><b>שם:</b> ${esc(ev.title)}</p>` : ""}
+        ${ev.actors ? `<p><b>שחקנים:</b> ${esc(ev.actors)}</p>` : ""}
+        ${ev.note   ? `<p><b>הערה:</b> ${esc(ev.note)}</p>` : ""}
+        ${ev.limits ? `<p><b>אילוצים:</b> ${esc(ev.limits)}</p>` : ""}
+        <hr>
+      `;
+      actorsPanel.appendChild(block);
+    });
+  }
+
+  // блок "טכנאים" — пока заглушка
+  techPanel.innerHTML = "<p>מידע לטכנאים יתווסף בהמשך.</p>";
+
+  // скрываем панели по умолчанию
+  actorsPanel.style.display = "none";
+  techPanel.style.display   = "none";
+  actorsTab.classList.remove("active");
+  techTab.classList.remove("active");
+
   modal.style.display='flex';
 }
+
+/* вкладки внутри модалки */
+actorsTab.onclick = ()=>{
+  const isVisible = actorsPanel.style.display === "block";
+  if(isVisible){
+    actorsPanel.style.display="none";
+    actorsTab.classList.remove("active");
+  } else {
+    actorsPanel.style.display="block";
+    techPanel.style.display="none";
+    actorsTab.classList.add("active");
+    techTab.classList.remove("active");
+  }
+};
+techTab.onclick = ()=>{
+  const isVisible = techPanel.style.display === "block";
+  if(isVisible){
+    techPanel.style.display="none";
+    techTab.classList.remove("active");
+  } else {
+    techPanel.style.display="block";
+    actorsPanel.style.display="none";
+    techTab.classList.add("active");
+    actorsTab.classList.remove("active");
+  }
+};
 
 closeModal.onclick = ()=> modal.style.display='none';
 modal.onclick = e=>{
