@@ -26,7 +26,7 @@ body{
   color:var(--text);
 }
 
-/* ─── верхняя строка: театр, год, часы + кнопка техников ─── */
+/* ─── верхняя строка: театр, год, часы ─── */
 .top-bar{
   display:flex;
   align-items:flex-start;
@@ -60,6 +60,8 @@ body{
   font-weight:600;
   font-size:18px;
 }
+
+/* общая кнопка */
 .btn-small{
   padding:6px 10px;
   border-radius:10px;
@@ -75,10 +77,16 @@ body{
 /* ─── строка месяца + кнопки ─── */
 .month-bar{
   display:flex;
-  justify-content:flex-start;   /* слева экрана */
+  justify-content:space-between;  /* слева – месяцы, справа – טכנאים */
   align-items:center;
   gap:8px;
   margin:12px 0 18px;
+  margin-left:16px; /* чуть отодвигаем от левого края */
+}
+.month-controls{
+  display:flex;
+  align-items:center;
+  gap:8px;
 }
 #monthLabel{
   padding:6px 14px;
@@ -87,6 +95,11 @@ body{
   border:1px solid #c8c8c8;
   font-size:18px;
   font-weight:700;
+}
+#techPageBtn{
+  font-size:18px;        /* как часы */
+  padding:8px 14px;      /* крупнее обычной кнопки */
+  border-radius:14px;
 }
 
 /* ─── календарь ─── */
@@ -122,7 +135,7 @@ body{
 }
 .sabbath{ color:#d33; }
 
-/* число дня — поднято выше */
+/* число дня — поднято ближе к верху */
 .date-number{
   margin-top:16px;
   font-size:22px;
@@ -135,7 +148,7 @@ body{
   border-top:1px solid #d6d6d6;
 }
 
-/* блок события в ячейке (только спектакли) */
+/* блок события в ячейке (только спектакли + плашка חזרה) */
 .event{
   margin-top:4px;
   font-size:12px;
@@ -149,8 +162,11 @@ body{
   background:#ddd;
   margin-bottom:2px;
 }
+.rehearsal-badge .ev-tag{
+  background:#ffe0b2;
+}
 
-/* строка спектакля: название / место и времена */
+/* строка спектакля (desktop) */
 .event-show{
   display:flex;
   align-items:flex-start;
@@ -162,17 +178,33 @@ body{
 .ev-title-block b{
   display:block;
 }
-.ev-times{
+.ev-place{
+  font-size:11px;
+  color:var(--muted);
+}
+
+/* варианты времени:
+   - .ev-times-side: столбик слева (desktop)
+   - .ev-times-line: строка под названием (mobile) */
+.ev-times-side{
   display:flex;
   flex-direction:column;
   gap:2px;
-  direction:ltr;  /* чтобы 17:00, 20:00 были в читаемом порядке */
+  direction:ltr;
   font-size:11px;
   font-weight:700;
   color:#3fb0ff;
 }
-.ev-times span{
+.ev-times-side span{
   white-space:nowrap;
+}
+.ev-times-line{
+  display:none;
+  margin-top:2px;
+  direction:ltr;
+  font-size:11px;
+  font-weight:700;
+  color:#3fb0ff;
 }
 
 /* ─── модальное окно ─── */
@@ -229,6 +261,34 @@ body{
   font-weight:700;
   color:#3fb0ff;
 }
+#modalRehearsals{
+  margin-top:8px;
+  font-size:13px;
+}
+.rehearsal-row{
+  margin-top:6px;
+  margin-bottom:6px;
+  border-top:1px solid #eee;
+  padding-top:6px;
+}
+.rehearsal-cols{
+  display:flex;
+  gap:10px;
+}
+.rehearsal-col{
+  flex:1;
+}
+.rh-label{
+  font-weight:bold;
+  margin-bottom:2px;
+}
+.rh-line{
+  white-space:nowrap;
+}
+.rh-empty{
+  color:#aaa;
+}
+
 #modalLimits{
   margin-top:10px;
   font-size:13px;
@@ -276,9 +336,22 @@ body{
     font-size:9px;
     margin-top:3px;
   }
-  .ev-times{
-    font-size:9px;
+
+  /* мобильная логика:
+     - плашка הצגה
+     - под ней название
+     - под названием время (строкой)
+     - место не показываем внутри ячейки */
+  .ev-place{
+    display:none;
   }
+  .ev-times-side{
+    display:none;
+  }
+  .ev-times-line{
+    display:block;
+  }
+
   #yearLabel{
     font-size:28px;
   }
@@ -290,6 +363,10 @@ body{
     font-size:14px;
     padding:6px 8px;
   }
+  #techPageBtn{
+    font-size:14px;
+    padding:6px 10px;
+  }
 }
 </style>
 </head>
@@ -300,15 +377,17 @@ body{
   <div id="yearLabel"></div>
   <div class="right-top">
     <div id="clock">--:--:--</div>
-    <button id="techPageBtn" class="btn-small">טכנאים</button>
   </div>
 </div>
 
-<!-- СЛЕВА: [חודש קודם] [МЕСЯЦ] [חודש הבא] -->
+<!-- СЛЕВА: [кнопки месяцев]  СПРАВА: [טכנאים] -->
 <div class="month-bar">
-  <button id="prevBtn" class="btn-small" style="visibility:hidden">חודש קודם</button>
-  <div id="monthLabel">—</div>
-  <button id="nextBtn" class="btn-small">חודש הבא</button>
+  <div class="month-controls">
+    <button id="prevBtn" class="btn-small" style="visibility:hidden">חודש קודם</button>
+    <div id="monthLabel">—</div>
+    <button id="nextBtn" class="btn-small">חודש הבא</button>
+  </div>
+  <button id="techPageBtn" class="btn-small">טכנאים</button>
 </div>
 
 <div id="calendar"></div>
@@ -323,6 +402,7 @@ body{
       <h2 id="modalDate"></h2>
       <div id="modalDayNote"></div>
       <div id="modalEvents"></div>
+      <div id="modalRehearsals"></div>
       <div id="modalLimits"></div>
       <div id="dayViewButtons">
         <button id="openActorsBtn" class="btn-small">שחקנים</button>
@@ -380,6 +460,7 @@ const modalContent  = document.getElementById('modalContent');
 const modalDateEl   = document.getElementById('modalDate');
 const modalDayNoteEl= document.getElementById('modalDayNote');
 const modalEventsEl = document.getElementById('modalEvents');
+const modalRehearsalsEl = document.getElementById('modalRehearsals');
 const modalLimitsEl = document.getElementById('modalLimits');
 
 const openActorsBtn = document.getElementById('openActorsBtn');
@@ -411,7 +492,7 @@ function updateClock(){
 setInterval(updateClock,1000);
 updateClock();
 
-/* кнопка "טכנאים" в шапке — пока заглушка */
+/* кнопка "טכנאים" в шапке месяцев — пока заглушка */
 techPageBtn.onclick = () => {
   alert("דף טכנאים יתווסף בהמשך.");
 };
@@ -594,26 +675,41 @@ function renderCalendar(){
     const todays = cachedEvents.filter(ev=>ev.dateISO===iso);
     const showGroups = buildShowGroups(todays);
 
+    // спектакли
     showGroups.forEach(g=>{
       const evDiv = document.createElement('div');
       evDiv.className='event';
 
       let tagLabel = (g.category === 'external_show') ? 'הצגה חוץ' : 'הצגה';
 
-      const timesHTML = g.times.map(t=>`<span>${esc(t)}</span>`).join('');
+      const timesSideHTML = g.times.map(t=>`<span>${esc(t)}</span>`).join('');
+      const timesLineText = g.times.join(" , ");
 
       evDiv.innerHTML = `
         <div class="ev-tag">${esc(tagLabel)}</div>
         <div class="event-show">
           <div class="ev-title-block">
             <b>${esc(g.title)}</b>
-            <div>${esc(g.place)}</div>
+            <div class="ev-place">${esc(g.place)}</div>
+            <div class="ev-times-line">${esc(timesLineText)}</div>
           </div>
-          <div class="ev-times">${timesHTML}</div>
+          <div class="ev-times-side">${timesSideHTML}</div>
         </div>
       `;
       cell.appendChild(evDiv);
     });
+
+    // плашка "חזרה", если есть репетиции
+    const hasRehearsal = todays.some(ev =>
+      ev.category === 'morning_rehearsal' ||
+      ev.category === 'evening_rehearsal'
+    );
+    if(hasRehearsal){
+      const rehDiv = document.createElement('div');
+      rehDiv.className = 'event rehearsal-badge';
+      rehDiv.innerHTML = `<div class="ev-tag">חזרה</div>`;
+      cell.appendChild(rehDiv);
+    }
 
     if(viewYear===today.getFullYear() && viewMonth===today.getMonth() && d===today.getDate()){
       cell.style.outline = '3px solid var(--accent)';
@@ -634,7 +730,6 @@ function openModal(dateObj, events){
   actorsView.style.display = 'none';
   techView.style.display   = 'none';
 
-  // заголовок
   const dateStr = new Intl.DateTimeFormat('he-IL',{
     weekday:'long',day:'numeric',month:'long',year:'numeric'
   }).format(dateObj);
@@ -672,6 +767,9 @@ function openModal(dateObj, events){
     });
   }
 
+  // блок "חזרות" перед אילוצים
+  buildRehearsalsView(events);
+
   // אילוצים — снизу, собранные со всех событий
   const limitsSet = new Set();
   events.forEach(ev=>{
@@ -692,20 +790,81 @@ function openModal(dateObj, events){
     modalLimitsEl.innerHTML = "";
   }
 
-  // актёрский контент сразу готовим
+  // актёрский и тех-контент для отдельного вида
   buildActorsViewContent(events);
   buildTechViewContent(events);
 
   modal.style.display='flex';
 
-  // зафиксировать минимальную высоту, чтобы при переключении видов окно не "прыгало"
+  // фиксируем минимальную высоту, чтобы виды не "прыгали"
   requestAnimationFrame(()=>{
     baseModalHeight = modalContent.offsetHeight;
     modalContent.style.minHeight = baseModalHeight + "px";
   });
 }
 
-/* актёрский контент */
+/* блок хоровод с "חזרות" в дневном виде */
+function buildRehearsalsView(events){
+  const rehe = events.filter(ev =>
+    ev.category === 'morning_rehearsal' ||
+    ev.category === 'evening_rehearsal'
+  );
+  if(!rehe.length){
+    modalRehearsalsEl.innerHTML = "";
+    return;
+  }
+
+  const groupsMap = {};
+  for(const ev of rehe){
+    const key = ev.title || 'חזרה';
+    if(!groupsMap[key]){
+      groupsMap[key] = { title: ev.title || '', morning:[], evening:[] };
+    }
+    if(ev.category === 'morning_rehearsal'){
+      groupsMap[key].morning.push(ev);
+    } else if(ev.category === 'evening_rehearsal'){
+      groupsMap[key].evening.push(ev);
+    }
+  }
+  const groups = Object.values(groupsMap);
+
+  let html = "<h3>חזרות</h3>";
+  groups.forEach(g=>{
+    html += `<div class="rehearsal-row">`;
+    if(g.title){
+      html += `<p><b>${esc(g.title)}</b></p>`;
+    }
+    html += `<div class="rehearsal-cols">`;
+
+    // בוקר
+    html += `<div class="rehearsal-col"><div class="rh-label">חזרת בוקר</div>`;
+    if(g.morning.length){
+      g.morning.forEach(ev=>{
+        html += `<div class="rh-line">${esc(ev.time)} — ${esc(ev.place || "")}</div>`;
+      });
+    } else {
+      html += `<div class="rh-line rh-empty">—</div>`;
+    }
+    html += `</div>`;
+
+    // ערב
+    html += `<div class="rehearsal-col"><div class="rh-label">חזרת ערב</div>`;
+    if(g.evening.length){
+      g.evening.forEach(ev=>{
+        html += `<div class="rh-line">${esc(ev.time)} — ${esc(ev.place || "")}</div>`;
+      });
+    } else {
+      html += `<div class="rh-line rh-empty">—</div>`;
+    }
+    html += `</div>`;
+
+    html += `</div></div>`;
+  });
+
+  modalRehearsalsEl.innerHTML = html;
+}
+
+/* актёрский контент в отдельном окне */
 function buildActorsViewContent(events){
   const actorEvents = events.filter(ev =>
     ev.category === 'actor_show' ||
