@@ -24,7 +24,7 @@
 /* темы */
 body.theme-light{
   --bg:#ffffff;
-  --card:#f5f5f5;
+  --card:#f3f4f6;   /* чуть темнее кубики, фон белый */
   --text:#000;
 }
 body.theme-dark{
@@ -147,6 +147,7 @@ body.theme-dark #monthLabel{
   overflow:hidden;
   cursor:pointer;
   transition:transform 0.12s, filter 0.3s, opacity 0.3s;
+  box-shadow:0 1px 3px rgba(15,23,42,0.08);
 }
 .day:hover{
   transform:translateY(-2px);
@@ -205,8 +206,11 @@ body.theme-dark #monthLabel{
   padding:2px 8px;
   border-radius:10px;
   margin:2px 4px;
-  color:#fff;
+  color:#111;           /* днём текст в плашках чёрный */
   border:1px solid transparent;
+}
+body.theme-dark .ev-tag{
+  color:#fff;
 }
 .ev-tag-plan{
   background:rgba(52,199,89,0.35);
@@ -284,13 +288,17 @@ body.theme-dark #monthLabel{
   position:fixed;
   inset:0;
   display:none;
-  background:rgba(0,0,0,.55);
+  background:rgba(15,23,42,.18);  /* днём не сильно затемняем */
   align-items:center;
   justify-content:center;
   z-index:50;
 }
+body.theme-dark #modal{
+  background:rgba(0,0,0,.55);
+}
+
 #modalContent{
-  background:rgba(255,255,255,0.9);
+  background:#ffffff;   /* более белое окно днём */
   color:#000;
   border-radius:18px;
   padding:18px;
@@ -299,7 +307,7 @@ body.theme-dark #monthLabel{
   max-height:90vh;
   overflow:auto;
   position:relative;
-  /* плавное всплытие */
+  border:1px solid rgba(148,163,184,0.35);
   transition: opacity .2s ease, transform .2s ease;
 }
 body.theme-dark #modalContent{
@@ -313,13 +321,14 @@ body.theme-dark #techContent{
   color:#ffffff;
 }
 @supports (backdrop-filter: blur(8px)){
-  #modalContent{
-    background:rgba(255,255,255,0.18);
-    backdrop-filter:blur(14px) saturate(1.4);
-    border:1px solid rgba(255,255,255,0.4);
+  body.theme-light #modalContent{
+    background:rgba(255,255,255,0.96);
+    backdrop-filter:blur(10px);
   }
   body.theme-dark #modalContent{
     background:rgba(15,23,42,0.5);
+    backdrop-filter:blur(14px) saturate(1.4);
+    border:1px solid rgba(255,255,255,0.4);
   }
 }
 #closeModal{
@@ -353,6 +362,20 @@ body.theme-dark #techContent{
 .modal-show-block h3{
   margin:4px 0;
 }
+
+/* НОВОЕ: заголовок + время в одной строке */
+.modal-show-title-line{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  align-items:baseline;
+}
+.modal-show-times-inline{
+  font-size:0.9em;
+  color:#007aff;
+  direction:ltr;
+}
+
 .modal-show-times{
   margin-top:2px;
   direction:ltr;
@@ -468,6 +491,7 @@ body.theme-light #swipeHint{
     background:transparent;
     padding:0;
     margin-top:2px;
+    box-shadow:none;
   }
   .ev-title-block{
     display:none;
@@ -898,8 +922,10 @@ function openModal(dateObj, events){
       div.className=`modal-show-block ${catBoxClass}`;
       div.innerHTML=`
         <span class="ev-tag ${catTagClass}">${esc(catLabel)}</span>
-        <h3>${esc(g.title)}</h3>
-        <p class="modal-show-times">${esc(times)}</p>
+        <h3 class="modal-show-title-line">
+          <span>${esc(g.title)}</span>
+          <span class="modal-show-times-inline">${esc(times)}</span>
+        </h3>
         <p><b>מקום:</b> ${esc(g.place)}</p>
         ${g.note?`<p><b>הערה:</b> ${esc(g.note)}</p>`:""}
       `;
