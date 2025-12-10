@@ -153,7 +153,7 @@ body.theme-dark #monthLabel{
 }
 .day.past{
   opacity:0.55;
-  filter:blur(1px); /* + немного размытия */
+  filter:blur(1px);
 }
 .day.fog1{
   filter:blur(2px) grayscale(0.3);
@@ -299,6 +299,8 @@ body.theme-dark #monthLabel{
   max-height:90vh;
   overflow:auto;
   position:relative;
+  /* плавное всплытие */
+  transition: opacity .2s ease, transform .2s ease;
 }
 body.theme-dark #modalContent{
   color:#ffffff;
@@ -737,6 +739,7 @@ function renderCalendar(){
   document.getElementById('monthLabel').textContent=
     new Intl.DateTimeFormat('he-IL',{month:'long'}).format(new Date(viewYear,viewMonth,1));
 
+  // кнопка назад скрыта на текущем месяце
   if(viewYear===todayTA.getFullYear() && viewMonth===todayTA.getMonth())
     prevBtn.style.visibility='hidden';
   else
@@ -926,10 +929,15 @@ function openModal(dateObj, events){
   buildActorsViewContent(events);
   buildTechViewContent(events);
 
+  // плавное всплытие
   modal.style.display='flex';
+  modalContent.style.opacity='0';
+  modalContent.style.transform='translateY(15px) scale(0.96)';
   requestAnimationFrame(()=>{
     baseModalHeight=modalContent.offsetHeight;
     modalContent.style.minHeight=baseModalHeight+"px";
+    modalContent.style.opacity='';
+    modalContent.style.transform='';
   });
 }
 
@@ -1054,6 +1062,10 @@ function goNextMonth(){
   renderCalendar();
 }
 function goPrevMonth(){
+  const minY = todayTA.getFullYear();
+  const minM = todayTA.getMonth();
+  // запрет уходить в месяцы раньше текущего
+  if(viewYear<minY || (viewYear===minY && viewMonth<=minM)) return;
   viewMonth--;
   if(viewMonth<0){viewMonth=11;viewYear--;}
   renderCalendar();
@@ -1068,16 +1080,20 @@ let swipeActive=false;
 let pressCell=null;
 
 function showSwipeHint(dx){
-  const dir = dx<0 ? 'next' : 'prev';
+  // свайп влево = חודש קודם, свайп вправо = חודש הבא
+  const dir = dx<0 ? 'prev' : 'next';
   const ratio = Math.min(Math.abs(dx)/120,1);
   swipeHint.style.display='flex';
   swipeHint.style.opacity = 0.2+0.6*ratio;
   swipeHint.style.transform = `translateY(-50%) scale(${0.8+0.3*ratio})`;
+
   if(dir==='next'){
+    // вправо – подсказка справа: חודש הבא
     swipeHint.style.right='12px';
     swipeHint.style.left='auto';
     swipeHint.textContent='חודש הבא';
-  }else{
+  } else {
+    // влево – подсказка слева: חודש קודם
     swipeHint.style.left='12px';
     swipeHint.style.right='auto';
     swipeHint.textContent='חודש קודם';
@@ -1131,8 +1147,10 @@ function onTouchEnd(e){
     const dx=t.clientX-touchStartX;
     hideSwipeHint();
     if(Math.abs(dx)>80){
-      if(dx<0) goNextMonth();
-      else goPrevMonth();
+      // влево = месяц назад (но goPrevMonth сам не даст уйти в прошлое),
+      // вправо = месяц вперёд (до +2 месяцев)
+      if(dx<0) goPrevMonth();
+      else     goNextMonth();
     }
   }
   swipeActive=false;
